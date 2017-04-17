@@ -69,21 +69,32 @@
 			test('new THREE.CircleGeometry( 75, 12 )', new THREE.CircleGeometry( 75, 12));
 			
 			/*
+			球体
 			function SphereGeometry( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) {……}
+				radius:			半径
+				widthSegments:	水平方向上的分段数，段数越多，球体表面越光滑，默认是8。最小是3
+				heightSegments:	垂直方向上的分段数，段数越多，球体表面越光滑，默认是6，最小是2
+				phiStart:		从X轴的什么地方开始绘制
+				phiLength:		绘制的弧度
+				thetaStart:		从Y轴的什么地方开始绘制
+				thetaLength:	绘制的弧度
 			*/
-			test('new THREE.SphereGeometry( 75, 12, 6 )', new THREE.SphereGeometry( 75, 12, 6 ));
+			test('new THREE.SphereGeometry( 75, 12, 6 )', new THREE.SphereGeometry( 75, 12, 6));
 
 			/*
+			正20面体(有20个相同三角形面的多面体)
 			function IcosahedronGeometry( radius, detail ) {……}
 			*/
 			test('new THREE.IcosahedronGeometry( 30, 1 )', new THREE.IcosahedronGeometry( 30, 1 ));
 
 			/*
+			正8面体
 			function OctahedronGeometry( radius, detail ) {……}
 			*/
 			test('new THREE.OctahedronGeometry( 30, 2 )', new THREE.OctahedronGeometry( 30, 2 ));
 
 			/*
+			圆锥体
 			function ConeGeometry( radius, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength ) {
 				CylinderGeometry.call( this, 0, radius, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength );
 				……
@@ -116,12 +127,26 @@
 			test('new THREE.LatheGeometry( points, 8 )', new THREE.LatheGeometry( points, 8 ));
 
 			/*
-			function LatheGeometry( points, segments, phiStart, phiLength ) {……}
+			圆环
+			function TorusGeometry( radius, tube, radialSegments, tubularSegments, arc ) {……}
+				radius:			圆环的半径
+				tube:			圆环管道的半径
+				radialSegments:	圆环的分段数
+				tubularSegments:管道圆的分段数
+				arc:			绘制多少弧度的圆环
 			*/
 			test('new THREE.TorusGeometry( 50, 20, 8, 8 )', new THREE.TorusGeometry( 50, 20, 8, 8 ));
 			
 			/*
-			function TorusGeometry( radius, tube, radialSegments, tubularSegments, arc ) {……}
+			环面纽结
+			function TorusKnotGeometry( radius, tube, radialSegments, tubularSegments, p, q, heightScale ) {……}
+				radius:			圆环的半径
+				tube:			圆环管道的半径
+				radialSegments:	圆环的分段数
+				tubularSegments:管道圆的分段数
+				p:				该结绕其轴多久旋转一次，默认为2
+				q:				定义该结绕其内部旋转多少次，默认为3
+				heightScale:	拉伸环面扭结，默认为1	
 			*/
 			test('new THREE.TorusKnotGeometry( 50, 10, 12, 6 )', new THREE.TorusKnotGeometry( 50, 10, 12, 6 ));
 
