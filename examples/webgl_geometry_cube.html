@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js webgl - geometry - cube</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -16,6 +20,15 @@
 
 		<script src="../build/three.js"></script>
 
+		<!--
+		想要使用CanvasRenderer，必须添加如下两个js文件 
+		第一个文件顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
+		THREE.Projector has been moved to /examples/js/renderers/Projector.js. three.js:42883:3
+		TypeError: THREE.RenderableVertex is not a constructor 
+		-->
+        <script src="js/renderers/Projector.js"></script>
+        <script src="js/renderers/CanvasRenderer.js"></script>
+
 		<script>
 
 			var camera, scene, renderer;
@@ -25,36 +38,67 @@
 			animate();
 
 			function init() {
-
+				/*
+				PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
+				//定义相机的位置，有如下两种方式。如果不设置的话，相机位置为默认的Vector3{x:0,y:0,z:0}
+                //camera.position.set(0,0,400);
 				camera.position.z = 400;
 
+				//场景
 				scene = new THREE.Scene();
 
+				//加载图片作为纹理
 				var texture = new THREE.TextureLoader().load( 'textures/crate.gif' );
 
+				/*
+                这个类是另一种创建几何体对象的方式,它将所有的数据包括顶点位置,法线,面,颜色,uv和其它的自定义属性存在缓冲区, 
+                这样可以减少GPU的负荷,BufferGeometry同样也比Geometry对象复杂,增加了使用的难度,这里的属性都是存放在数组中, 
+                比如顶点位置不是Vector3对象,颜色也不是color对象,而是数组.需要访问这些属性,需要从属性缓冲区中读原始数据. 
+                */
 				var geometry = new THREE.BoxBufferGeometry( 200, 200, 200 );
+
+				/*
+				MeshBasicMaterial是一种固定材质，它的纹理颜色不会随着光照改变
+				*/
 				var material = new THREE.MeshBasicMaterial( { map: texture } );
 
+				//通过物体的几何形状大小和材质网格化出该物体
 				mesh = new THREE.Mesh( geometry, material );
 				scene.add( mesh );
 
+				/*
+				由于WebGL在手机上支持不好，因此如果要在手机上运行的话需要改为CanvasRender。 
+                尽量使用WebGLRender，因为它会使用GPU辅助计算，而普通的Canvas只会用到CPU
+                */
+               	//renderer = new THREE.CanvasRenderer();
 				renderer = new THREE.WebGLRenderer();
 				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
 				document.body.appendChild( renderer.domElement );
 
-				//
-
+				/*
+                element.addEventListener(event, function, useCapture)
+                useCapture，可选。true：事件句柄在捕获阶段执行；false：默认，事件句柄在冒泡阶段执行
+                */
 				window.addEventListener( 'resize', onWindowResize, false );
 
 			}
 
 			function onWindowResize() {
 
+                //重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
 				camera.aspect = window.innerWidth / window.innerHeight;
+				//更新相机的投影矩阵
 				camera.updateProjectionMatrix();
-
+				//更新透视相机的投影矩阵
 				renderer.setSize( window.innerWidth, window.innerHeight );
 
 			}
@@ -63,8 +107,13 @@
 
 				requestAnimationFrame( animate );
 
-				mesh.rotation.x += 0.005;
-				mesh.rotation.y += 0.01;
+				//物体按右手螺旋定则绕X轴旋转
+				//mesh.rotation.x += 0.005;
+				//物体按右手螺旋定则绕Y轴旋转
+				//mesh.rotation.y += 0.01;
+				//上面两条也可以使用函数的方式调用
+				mesh.rotateX(0.005);
+				mesh.rotateY(0.01);
 
 				renderer.render( scene, camera );
 

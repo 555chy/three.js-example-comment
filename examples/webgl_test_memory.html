@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js - webgl</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -19,6 +23,15 @@
 
 		<script src="../build/three.js"></script>
 
+		<!--
+		想要使用CanvasRenderer，必须添加如下两个js文件 
+		第一个文件顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
+		THREE.Projector has been moved to /examples/js/renderers/Projector.js. three.js:42883:3
+		TypeError: THREE.RenderableVertex is not a constructor 
+		-->
+        <script src="js/renderers/Projector.js"></script>
+        <script src="js/renderers/CanvasRenderer.js"></script>
+
 		<script>
 
 			var container;
@@ -33,14 +46,27 @@
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
+				/*
+                PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
+				//定义相机的位置，有如下两种方式。如果不设置的话，相机位置为默认的Vector3{x:0,y:0,z:0}
+                //camera.position.set(0,0,200);
 				camera.position.z = 200;
 
 				scene = new THREE.Scene();
 
+				//renderer = new THREE.CanvasRenderer();
 				renderer = new THREE.WebGLRenderer();
+                //设置渲染器的"清除色"和"透明度"
 				renderer.setClearColor( 0xffffff );
-				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置屏幕像素比，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
+                renderer.setPixelRatio( window.devicePixelRatio );
+                //设置待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				container.appendChild( renderer.domElement );
 
@@ -60,8 +86,6 @@
 
 			}
 
-			//
-
 			function animate() {
 
 				requestAnimationFrame( animate );
@@ -71,13 +95,15 @@
 			}
 
 			function render() {
-
+				//SphereBufferGeometry比SphereGeometry省内存，但是调用起来比较麻烦，因为里面的所有数据不是存储在对象上而是直接存储在字节数组中
 				var geometry = new THREE.SphereBufferGeometry( 50, Math.random() * 64, Math.random() * 32 );
 
-				var texture = new THREE.CanvasTexture( createImage() );
+				//这里使用画布纹理来实现随机颜色有点大才小用了，其实只需要使用随机颜色即可。
+				//var texture = new THREE.CanvasTexture( createImage() );
+				//var material = new THREE.MeshBasicMaterial( { map: texture, wireframe: true } );
+				var material = new THREE.MeshBasicMaterial( { color: Math.random() * 0xffffff, wireframe: true } );
 
-				var material = new THREE.MeshBasicMaterial( { map: texture, wireframe: true } );
-
+				//通过物体的几何形状大小和材质网格化出该物体
 				var mesh = new THREE.Mesh( geometry, material );
 
 				scene.add( mesh );
@@ -86,8 +112,11 @@
 
 				scene.remove( mesh );
 
+				/*
+				JavaScript memory management is controlled entirely by the browser. You can't force the GC to run ( and you shouldn't be able to since it's pretty well optimized);
+				所以说下面的释放语句理论上不使用也是可以的，手动释放的好处是可以及时的使内存维持在一个低的使用率上
+				*/
 				// clean up
-
 				geometry.dispose();
 				material.dispose();
 				texture.dispose();

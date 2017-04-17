@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js canvas - geometry - earth</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -18,15 +22,25 @@
 
 			#info {
 				position: absolute;
-				top: 0px; width: 100%;
+				top: 0px; 
+				/*
+				relative的div：width默认是window.innerWidth
+				absolute的div：width默认是内容大小
+				由于在body上指定了text-align，因此这里只需要设置width:100%就可以让文本居中了
+				*/
+				width: 100%;
 				padding: 5px;
 			}
 
+			/*
+			未访问		a:link    {color:blue;}
+			已访问		a:visited {color:blue;}
+			鼠标悬停	a:hover   {color:red;}
+			鼠标按下	a:active  {color:yellow;}
+			*/
 			a {
-
 				color: #0080ff;
 			}
-
 		</style>
 	</head>
 	<body>
@@ -36,13 +50,21 @@
 
 		<script src="../build/three.js"></script>
 
+		<!--
+		想要使用CanvasRenderer，必须添加如下两个js文件 
+		第一个文件顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
+		THREE.Projector has been moved to /examples/js/renderers/Projector.js. three.js:42883:3
+		TypeError: THREE.RenderableVertex is not a constructor 
+		-->
 		<script src="js/renderers/Projector.js"></script>
 		<script src="js/renderers/CanvasRenderer.js"></script>
 
+		<!--
+		统计插件(FPS，渲染时间，chrome内存使用率)，min表示js代码经过压缩
+		-->
 		<script src="js/libs/stats.min.js"></script>
 
 		<script>
-
 			var container, stats;
 			var camera, scene, renderer;
 			var group;
@@ -58,26 +80,53 @@
 
 				container = document.getElementById( 'container' );
 
+				/*
+				PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 2000 );
+				//定义相机的位置，有如下两种方式。如果不设置的话，相机位置为默认的Vector3{x:0,y:0,z:0}
+                //camera.position.set(0,0,500);
 				camera.position.z = 500;
 
 				scene = new THREE.Scene();
 
+				//three.js中的分组，同一个分组中的对象可以一起执行某项操作，不用再进行遍历判断
 				group = new THREE.Group();
 				scene.add( group );
 
 				// earth
 
 				var loader = new THREE.TextureLoader();
+				/*
+				TextureLoader.load: function ( url, onLoad, onProgress, onError )
+				function onLoad( texture ) {……}
+				function onProgress ( event ) {……}
+				function onEvent ( event ) {……}
+				从源码可以看出，TextureLoader实际上是对ImageLoader的封装，加载完成后调用onLoad函数。
+				此外在ImageLoader的源码中onProgress方法的回调被注释掉了，因此如果传递该函数则不会被执行
+				*/
 				loader.load( 'textures/land_ocean_ice_cloud_2048.jpg', function ( texture ) {
 
+					/*
+					创建半径为200，宽高各切20等分的球体
+					function SphereGeometry( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) {……}
+					*/
 					var geometry = new THREE.SphereGeometry( 200, 20, 20 );
 
-					var material = new THREE.MeshBasicMaterial( { map: texture, overdraw: 0.5 } );
+					/*
+					overdraw:过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+					*/					
+					var material = new THREE.MeshBasicMaterial( { map: texture, overdraw: 0.1 } );
+					
+					//网格化或实例化集合体
 					var mesh = new THREE.Mesh( geometry, material );
 					group.add( mesh );
 
-				} );
+				});
 
 				// shadow
 
@@ -86,6 +135,15 @@
 				canvas.height = 128;
 
 				var context = canvas.getContext( '2d' );
+				/*
+				context.createRadialGradient(x0,y0,r0,x1,y1,r1);
+					x0	渐变的开始圆的 x 坐标
+					y0	渐变的开始圆的 y 坐标
+					r0	开始圆的半径
+					x1	渐变的结束圆的 x 坐标
+					y1	渐变的结束圆的 y 坐标
+					r1	结束圆的半径
+				*/
 				var gradient = context.createRadialGradient(
 					canvas.width / 2,
 					canvas.height / 2,
@@ -100,6 +158,7 @@
 				context.fillStyle = gradient;
 				context.fillRect( 0, 0, canvas.width, canvas.height );
 
+				//画布纹理，使用画布初始化某个纹理
 				var texture = new THREE.CanvasTexture( canvas );
 
 				var geometry = new THREE.PlaneBufferGeometry( 300, 300, 3, 3 );
@@ -111,17 +170,20 @@
 				group.add( mesh );
 
 				renderer = new THREE.CanvasRenderer();
+				//这里不能使用WebGLRenderer，因为无法加载TextureLoader纹理，原因未知！！！
+				//renderer = new THREE.WebGLRenderer();
 				renderer.setClearColor( 0xffffff );
+				console.log(window.devicePixelRatio);
 				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				container.appendChild( renderer.domElement );
 
+				//左上角的统计信息(FPS，渲染时间，chrome内存使用率)
 				stats = new Stats();
 				container.appendChild( stats.dom );
 
 				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-
-				//
 
 				window.addEventListener( 'resize', onWindowResize, false );
 
@@ -132,44 +194,52 @@
 				windowHalfX = window.innerWidth / 2;
 				windowHalfY = window.innerHeight / 2;
 
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
+				 //重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
+                camera.aspect = window.innerWidth / window.innerHeight;
+                //更新透视相机的投影矩阵
+                camera.updateProjectionMatrix();
 
 				renderer.setSize( window.innerWidth, window.innerHeight );
 
 			}
 
 			function onDocumentMouseMove( event ) {
-
+				//记录与屏幕中心点的距离
 				mouseX = ( event.clientX - windowHalfX );
 				mouseY = ( event.clientY - windowHalfY );
 
 			}
-
-			//
 
 			function animate() {
 
 				requestAnimationFrame( animate );
 
 				render();
+				//这里可以在render前后使用stats.begin和stats.end，也可以在每次渲染的时候调用一次stats.update
 				stats.update();
 
 			}
 
 			function render() {
 
+				/*
+				即如下两个公式，由于浏览器的X轴方向与WebGL的X轴方向相同，而Y轴方向相反，所以X用正的，而Y用负的
+				camera.position.x = camera.position.x * 0.95 + mouseX * 0.05;
+				camera.position.y = camera.position.y * 0.95 - mouseY * 0.05;
+				*/
 				camera.position.x += ( mouseX - camera.position.x ) * 0.05;
 				camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
+				
+				//相机重新注视场景中央，否则相机只会对着原lookAt计算出的向量方向
 				camera.lookAt( scene.position );
 
-				group.rotation.y -= 0.005;
+				//将旋转的角度按右手螺旋定则绕着Y轴旋转，有以下两种方式实现旋转
+				//group.rotation.y -= 0.005;
+				group.rotateY(0.005);
 
 				renderer.render( scene, camera );
 
 			}
-
-
 		</script>
 
 	</body>
