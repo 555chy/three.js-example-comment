@@ -44,7 +44,6 @@
 		</style>
 	</head>
 	<body>
-
 		<div id="container"></div>
 		<div id="info"><a href="http://threejs.org" target="_blank">three.js</a> - earth demo</div>
 
@@ -77,7 +76,6 @@
 			animate();
 
 			function init() {
-
 				container = document.getElementById( 'container' );
 
 				/*
@@ -169,28 +167,33 @@
 				mesh.rotation.x = - Math.PI / 2;
 				group.add( mesh );
 
+				/*
+				这里不能使用WebGLRenderer，因为无法加载TextureLoader纹理，原因未知！！！
+				renderer = new THREE.WebGLRenderer();
+				*/
 				renderer = new THREE.CanvasRenderer();
-				//这里不能使用WebGLRenderer，因为无法加载TextureLoader纹理，原因未知！！！
-				//renderer = new THREE.WebGLRenderer();
+				
+				//设置渲染器的"清除色"和"透明度"
 				renderer.setClearColor( 0xffffff );
+				//设置屏幕像素比，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
 				console.log(window.devicePixelRatio);
 				renderer.setPixelRatio( window.devicePixelRatio );
 				//设置待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
 				container.appendChild( renderer.domElement );
 
 				//左上角的统计信息(FPS，渲染时间，chrome内存使用率)
 				stats = new Stats();
+				//这里注意，统计插件的dom元素是"dom"，而不是domElement
 				container.appendChild( stats.dom );
 
 				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 
 				window.addEventListener( 'resize', onWindowResize, false );
-
 			}
 
 			function onWindowResize() {
-
 				windowHalfX = window.innerWidth / 2;
 				windowHalfY = window.innerHeight / 2;
 
@@ -200,28 +203,23 @@
                 camera.updateProjectionMatrix();
 
 				renderer.setSize( window.innerWidth, window.innerHeight );
-
 			}
 
 			function onDocumentMouseMove( event ) {
 				//记录与屏幕中心点的距离
 				mouseX = ( event.clientX - windowHalfX );
 				mouseY = ( event.clientY - windowHalfY );
-
 			}
 
 			function animate() {
-
 				requestAnimationFrame( animate );
 
 				render();
 				//这里可以在render前后使用stats.begin和stats.end，也可以在每次渲染的时候调用一次stats.update
 				stats.update();
-
 			}
 
 			function render() {
-
 				/*
 				即如下两个公式，由于浏览器的X轴方向与WebGL的X轴方向相同，而Y轴方向相反，所以X用正的，而Y用负的
 				camera.position.x = camera.position.x * 0.95 + mouseX * 0.05;
@@ -238,9 +236,7 @@
 				group.rotateY(0.005);
 
 				renderer.render( scene, camera );
-
 			}
 		</script>
-
 	</body>
 </html>

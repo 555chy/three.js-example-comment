@@ -4,6 +4,10 @@
 		<title>three.js webgl - scenes transition</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<style>
 			body {
 				font-family: Monospace;
@@ -22,13 +26,18 @@
 				width: 100%;
 			}
 
+			/*
+			未访问		a:link    {color:blue;}
+			已访问		a:visited {color:blue;}
+			鼠标悬停	a:hover   {color:red;}
+			鼠标按下	a:active  {color:yellow;}
+			*/
 			.info a {
 				color: #00ffff;
 			}
 		</style>
 	</head>
 	<body>
-
 		<div class="info">
 			<a href="http://threejs.org" target="_blank">three.js</a> webgl scene transitions - by <a href="https://twitter.com/fernandojsg">fernandojsg</a> - <a href="https://github.com/kile/three.js-demos">github</a>
 		</div>
@@ -36,14 +45,18 @@
 		<div id="container"></div>
 
 		<script src="../build/three.js"></script>
+		<!--
+		统计插件(FPS，渲染时间，chrome内存使用率)，min表示js代码经过压缩
+		-->
 		<script src="js/libs/stats.min.js"></script>
+		
 		<script src="js/libs/dat.gui.min.js"></script>
+		
 		<script src="js/crossfade/scenes.js"></script>
 		<script src="js/crossfade/gui.js"></script>
 		<script src="js/crossfade/transition.js"></script>
 		
 		<script>
-
 			var container, stats;
 			var renderer;
 			var transition;
@@ -89,9 +102,6 @@
 				transition.render( clock.getDelta() );
 				
 			}
-
 		</script>
-
 	</body>
-	
 </html>

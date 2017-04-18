@@ -18,7 +18,6 @@
         </style>
     </head>
     <body>
- 
         <script src="../build/three.js"></script>
  
 		<!--
@@ -36,7 +35,6 @@
         <script src="js/libs/stats.min.js"></script>
  
         <script>
- 
             var container, stats;
  
             var camera, scene, renderer;
@@ -105,14 +103,13 @@
                     geometry.faces[ i + 1 ].color.setHex( hex );
                 }
                  
-                 
                 /*
                 vertexColors是将几何体面的颜色传递给顶点着色器，如果该点处在几个面中间，则使用它们的混合颜色
                 overdraw:过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
                 */
                 var material = new THREE.MeshBasicMaterial( { vertexColors: THREE.FaceColors, overdraw: 0.5 } );
  
- 				////通过物体的几何形状大小和材质网格化出该物体
+				//通过物体的几何形状大小和材质网格化出该物体
                 cube = new THREE.Mesh( geometry, material );
                 cube.position.y = 150;
                 scene.add( cube );
@@ -139,7 +136,6 @@
                 //renderer = new THREE.WebGLRenderer();
                 //设置渲染器的"清除色"和"透明度"
                 renderer.setClearColor( 0xf0f0f0 );
-                 
                 //设置屏幕像素比，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
                 renderer.setPixelRatio( window.devicePixelRatio );
                 //设置待渲染场景的大小
@@ -149,24 +145,23 @@
  
                 //左上角的统计信息(FPS，渲染时间，chrome内存使用率)
                 stats = new Stats();
+				//这里注意，统计插件的dom元素是"dom"，而不是domElement
                 container.appendChild( stats.dom );
  
                 /*
                 element.addEventListener(event, function, useCapture)
                 useCapture，可选。true：事件句柄在捕获阶段执行；false：默认，事件句柄在冒泡阶段执行
                 */
-                //mouse事件是针对浏览器的
+                //mouse事件是针对PC浏览器的
                 document.addEventListener( 'mousedown', onDocumentMouseDown, false );
                 //touch事件是针对手持设备的
                 document.addEventListener( 'touchstart', onDocumentTouchStart, false );
                 document.addEventListener( 'touchmove', onDocumentTouchMove, false );
  
                 window.addEventListener( 'resize', onWindowResize, false );
- 
             }
  
             function onWindowResize() {
- 
                 windowHalfX = window.innerWidth / 2;
                 windowHalfY = window.innerHeight / 2;
                  
@@ -176,13 +171,9 @@
                 camera.updateProjectionMatrix();
  
                 renderer.setSize( window.innerWidth, window.innerHeight );
- 
             }
  
-            //
- 
             function onDocumentMouseDown( event ) {
- 
                 //通知 Web 浏览器不要执行与事件关联的默认动作(如果存在这样的动作)
                 event.preventDefault();
  
@@ -193,7 +184,6 @@
  
                 mouseXOnMouseDown = event.clientX - windowHalfX;
                 targetRotationOnMouseDown = targetRotation;
- 
             }
  
             function onDocumentMouseMove( event ) {
@@ -206,57 +196,46 @@
                 mouseX = event.clientX - windowHalfX;
                 //每一次旋转都从mousedown的角度开始计算
                 targetRotation = targetRotationOnMouseDown + ( mouseX - mouseXOnMouseDown ) * 0.02;
- 
             }
  
             function onDocumentMouseUp( event ) {
-             
                 //在mouseUp的时候解绑定相应事件
                 document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
                 document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
                 document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
- 
             }
  
             function onDocumentMouseOut( event ) {
- 
                 //鼠标移出该区域的时候解除相应的事件绑定
                 document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
                 document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
                 document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
- 
             }
  
             function onDocumentTouchStart( event ) {
- 
-                //三个等号是恒等，比较数值的同时也比较类型。
-                //这里限制只有单指触摸的时候才执行相应的方法
-                if ( event.touches.length === 1 ) {
-                     
+                if ( event.touches.length > 1 ) {           
                     event.preventDefault();
                     console.log(event.touches[0]);
                     mouseXOnMouseDown = event.touches[ 0 ].pageX - windowHalfX;
                     targetRotationOnMouseDown = targetRotation;
- 
                 }
- 
             }
  
             function onDocumentTouchMove( event ) {
- 
+				/*
+				三个等号是恒等，比较数值的同时也比较类型。
+                这里限制只有单指触摸的时候才执行相应的方法
+				*/
                 if ( event.touches.length === 1 ) {
  
                     event.preventDefault();
  
                     mouseX = event.touches[ 0 ].pageX - windowHalfX;
                     targetRotation = targetRotationOnMouseDown + ( mouseX - mouseXOnMouseDown ) * 0.05;
- 
                 }
- 
             }
  
             function animate() {
- 
                 requestAnimationFrame( animate );
  
                 //这里可以在render前后使用stats.begin和stats.end，也可以在每次渲染的时候调用一次stats.update
@@ -267,15 +246,11 @@
             }
  
             function render() {
- 
                 //将旋转的角度按右手螺旋定则更新到原旋转角上
                 plane.rotation.y = cube.rotation.y += ( targetRotation - cube.rotation.y ) * 0.05;
                 renderer.render( scene, camera );
- 
             }
- 
         </script>
- 
     </body>
 </html>
 

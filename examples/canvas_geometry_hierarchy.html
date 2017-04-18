@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js canvas - geometry - hierarchy</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -15,16 +19,23 @@
 		</style>
 	</head>
 	<body>
-
 		<script src="../build/three.js"></script>
 
+		<!--
+		想要使用CanvasRenderer，必须添加如下两个js文件 
+		第一个文件顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
+		THREE.Projector has been moved to /examples/js/renderers/Projector.js. three.js:42883:3
+		TypeError: THREE.RenderableVertex is not a constructor 
+		-->
 		<script src="js/renderers/Projector.js"></script>
 		<script src="js/renderers/CanvasRenderer.js"></script>
-
+		
+		<!--
+		统计插件(FPS，渲染时间，chrome内存使用率)，min表示js代码经过压缩
+		-->
 		<script src="js/libs/stats.min.js"></script>
 
 		<script>
-
 			var container, stats;
 
 			var camera, scene, renderer;
@@ -36,103 +47,130 @@
 			var windowHalfX = window.innerWidth / 2;
 			var windowHalfY = window.innerHeight / 2;
 
+			/*
+			element.addEventListener(event, function, useCapture)
+			useCapture，可选。true：事件句柄在捕获阶段执行；false：默认，事件句柄在冒泡阶段执行
+			*/
+			//mouse事件是针对PC浏览器的
 			document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 
 			init();
 			animate();
 
 			function init() {
-
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
+				/*
+                PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
 				camera.position.z = 500;
 
 				scene = new THREE.Scene();
 
+				//立方体的边长均为100
 				var geometry = new THREE.BoxGeometry( 100, 100, 100 );
+				/*
+				MeshNormalMaterial是一种根据法向量决定颜色的材质
+				overdraw:过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+				*/	
 				var material = new THREE.MeshNormalMaterial( { overdraw: 0.5 } );
 
+				//three.js中的分组，同一个分组中的对象可以一起执行某项操作，不用再进行遍历判断
 				group = new THREE.Group();
 
 				for ( var i = 0; i < 200; i ++ ) {
-
 					var mesh = new THREE.Mesh( geometry, material );
 					mesh.position.x = Math.random() * 2000 - 1000;
 					mesh.position.y = Math.random() * 2000 - 1000;
 					mesh.position.z = Math.random() * 2000 - 1000;
 					mesh.rotation.x = Math.random() * 2 * Math.PI;
 					mesh.rotation.y = Math.random() * 2 * Math.PI;
+					//改变position、rotation、scale等属性时是自动更新matrix还是需要手动调用updateMatrix()进行更新
 					mesh.matrixAutoUpdate = false;
 					mesh.updateMatrix();
 					group.add( mesh );
-
 				}
 
 				scene.add( group );
 
 				renderer = new THREE.CanvasRenderer();
-				renderer.setClearColor( 0xffffff );
-				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( window.innerWidth, window.innerHeight );
+				//设置渲染器的"清除色"和"透明度"
+                renderer.setClearColor( 0xffffff );
+                //设置屏幕像素比，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
+                renderer.setPixelRatio( window.devicePixelRatio );
+                //设置待渲染场景的大小
+                renderer.setSize( window.innerWidth, window.innerHeight );
+                //将渲染器的DOM元素(即Canvas)添加到HTML中
 				container.appendChild( renderer.domElement );
 
+				//左上角的统计信息(FPS，渲染时间，chrome内存使用率)
 				stats = new Stats();
+				//这里注意，统计插件的dom元素是"dom"，而不是domElement
 				container.appendChild( stats.dom );
 
-				//
-
 				window.addEventListener( 'resize', onWindowResize, false );
-
 			}
 
 			function onWindowResize() {
-
 				windowHalfX = window.innerWidth / 2;
 				windowHalfY = window.innerHeight / 2;
 
+				//重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
 				camera.aspect = window.innerWidth / window.innerHeight;
+				//更新相机的投影矩阵
 				camera.updateProjectionMatrix();
 
+				//重新设置渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
-
 			}
 
 			function onDocumentMouseMove(event) {
-
+				/*
+                html的坐标轴是以左上角为(0,0)，右下方向为正方向
+                event.clientX=event.pageX返回当事件被触发时鼠标指针向对于浏览器可见区域的X坐标
+                event.offsetX返回当前事件相对于事件源元素（srcElement）的X坐标
+                event.screenX鼠标相对于用户显示器屏幕左上角的X坐标
+                */
 				mouseX = ( event.clientX - windowHalfX ) * 10;
 				mouseY = ( event.clientY - windowHalfY ) * 10;
 
 			}
 
-			//
-
 			function animate() {
-
 				requestAnimationFrame( animate );
 
 				render();
+				//这里可以在render前后使用stats.begin和stats.end，也可以在每次渲染的时候调用一次stats.update
 				stats.update();
-
 			}
 
 			function render() {
-
+				/*
+				即如下两个公式，由于浏览器的X轴方向与WebGL的X轴方向相同，而Y轴方向相反，所以X用正的，而Y用负的
+				camera.position.x = camera.position.x * 0.95 + mouseX * 0.05;
+				camera.position.y = camera.position.y * 0.95 - mouseY * 0.05;
+				*/
 				camera.position.x += ( mouseX - camera.position.x ) * .05;
 				camera.position.y += ( - mouseY - camera.position.y ) * .05;
+				//相机重新注视场景中央，否则相机只会对着原lookAt计算出的向量方向
 				camera.lookAt( scene.position );
 
+				//Date.now()得到的是当前时间戳，单位毫秒
 				var currentSeconds = Date.now();
+				
+				//分别从X、Y、Z轴正方向，按右手螺旋定则旋转如下角度
 				group.rotation.x = Math.sin( currentSeconds * 0.0007 ) * 0.5;
 				group.rotation.y = Math.sin( currentSeconds * 0.0003 ) * 0.5;
 				group.rotation.z = Math.sin( currentSeconds * 0.0002 ) * 0.5;
 
 				renderer.render( scene, camera );
-
 			}
-
 		</script>
-
 	</body>
 </html>
