@@ -22,3 +22,5 @@
 - [canvas_camera_orthographic2.html](examples/canvas_camera_orthographic2.html)
 
 ## [View Examples](examples/index.html)
+
+如果GitHub的当前页没有index.html的话，GitHub会按设置好的模板加载README.md
