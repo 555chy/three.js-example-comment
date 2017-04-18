@@ -134,8 +134,8 @@
 
 				// lines
 				/*
-				it is rendered using gl.LINE_STRIP instead of gl.LINES
-				它使用WebGL中的gl.LINE_STRIP(一系列的连续直线)渲染，而不是gl.LINES(每一对顶点被解释为一条直线)渲染
+				THREE.Line使用WebGL中的gl.LINE_STRIP(一系列的连续直线)渲染
+				THREE.LineSegments使用WebGL中的gl.LINES(每一对顶点被解释为一条直线)渲染
 				*/
 				var line = new THREE.Line( geometry, new THREE.LineBasicMaterial( { color: 0xffffff, opacity: 0.5 } ) );
 				scene.add( line );
