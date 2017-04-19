@@ -75,6 +75,7 @@
 				container.appendChild( info );
 
 				/*
+				透视相机
 				PerspectiveCamera(fov, aspect, near, far)
                     fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
                     aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
@@ -146,7 +147,7 @@
 			}
 
 			function onWindowResize() {
-				//重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
+				//更新透视相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
 				camera.aspect = window.innerWidth / window.innerHeight;
 				//更新相机的投影矩阵
 				camera.updateProjectionMatrix();
@@ -169,9 +170,12 @@
 				var timer = Date.now() - start;
 				
 				sphere.position.y = Math.abs( Math.sin( timer * 0.002 ) ) * 150;
-				//按照右手螺旋定则旋转
-				sphere.rotation.x = timer * 0.0003;
-				sphere.rotation.z = timer * 0.0002;
+				//按照右手螺旋定则绕X轴旋转
+				//sphere.rotation.x = timer * 0.0003;
+				sphere.rotateX(timer * 0.0003);
+				//按照右手螺旋定则绕Z轴旋转
+				//sphere.rotation.z = timer * 0.0002;
+				sphere.rotateZ(timer * 0.0002);
 
 				//更新轨迹控制器，这里轨迹控制器与相机关联，所以也会更新相机的位置和角度。注意这里就不用设置相机的lookAt了
 				controls.update();

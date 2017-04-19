@@ -31,6 +31,10 @@
 
 		<div style="position: absolute; top: 10px; width: 100%; text-align: center; ">
 			<a href="http://threejs.org" target="_blank">three.js</a> - Combo Camera<br>
+			<!--
+			链接的onclick事件被先执行，其次是href属性下的动作(页面跳转，或 javascript 伪链接) 
+			假设链接中同时存在href与onclick，如果想让href属性下的动作不执行，onclick必须得到一个false的返回值。
+			-->
 			View: <a href="#" onclick="setOrthographic();return false;"> Orthographic</a> |
 				<a href="#" onclick="setPerspective();return false;">Perspective</a><br>
 			Lens: <a href="#" onclick="setLens(12);return false;">12mm</a> |

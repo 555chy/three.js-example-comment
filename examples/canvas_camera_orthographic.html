@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js canvas - camera - orthographic</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -16,9 +20,18 @@
 	<body>
 		<script src="../build/three.js"></script>
 
+		<!--
+		想要使用CanvasRenderer，必须添加如下两个js文件 
+		第一个文件顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
+		THREE.Projector has been moved to /examples/js/renderers/Projector.js. three.js:42883:3
+		TypeError: THREE.RenderableVertex is not a constructor 
+		-->
 		<script src="js/renderers/Projector.js"></script>
 		<script src="js/renderers/CanvasRenderer.js"></script>
 
+		<!--
+		统计插件(FPS，渲染时间，chrome内存使用率)，min表示js代码经过压缩
+		-->
 		<script src="js/libs/stats.min.js"></script>
 
 		<script>
@@ -40,7 +53,19 @@
 				info.innerHTML = '<a href="http://threejs.org" target="_blank">three.js</a> - orthographic view';
 				container.appendChild( info );
 
+				/*
+				正投影相机
+				function OrthographicCamera( left, right, top, bottom, near, far )
+					left(左边界):	可被渲染空间的最左面
+					right(右边界):	可被渲染空间的最右面
+					top(上边界):	可被渲染空间的最上面
+					bottom(下边界):	可被渲染空间的最下面
+					near(近面):		可被渲染空间的最近面
+					far(远面):		可被渲染空间的最远面
+				*/
 				camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, - 500, 1000 );
+				//定义相机的位置，有如下两种方式。如果不设置的话，相机位置为默认的Vector3{x:0,y:0,z:0}
+                //camera.position.set(200,100,200);
 				camera.position.x = 200;
 				camera.position.y = 100;
 				camera.position.z = 200;
@@ -53,36 +78,36 @@
 
 				var geometry = new THREE.Geometry();
 
+				//绘制网格
 				for ( var i = - size; i <= size; i += step ) {
-
+					//从左下角到右上角，先画横线，在画竖线
+					//绘制与X轴平行的横线
 					geometry.vertices.push( new THREE.Vector3( - size, 0, i ) );
 					geometry.vertices.push( new THREE.Vector3(   size, 0, i ) );
-
+					//绘制与ZZ轴平行的竖线
 					geometry.vertices.push( new THREE.Vector3( i, 0, - size ) );
 					geometry.vertices.push( new THREE.Vector3( i, 0,   size ) );
-
 				}
 
 				var material = new THREE.LineBasicMaterial( { color: 0x000000, opacity: 0.2 } );
 
 				/*
-				THREE.Line使用WebGL中的gl.LINE_STRIP(一系列的连续直线)渲染
-				THREE.LineSegments使用WebGL中的gl.LINES(每一对顶点被解释为一条直线)渲染
+				THREE.Line使用WebGL中的gl.LINE_STRIP(一系列的连续直线，即折线)渲染
+				THREE.LineSegments使用WebGL中的gl.LINES(每一对顶点被解释为一条直线，即线段)渲染
 				*/
 				var line = new THREE.LineSegments( geometry, material );
 				scene.add( line );
 
 				// Cubes
-
 				var geometry = new THREE.BoxGeometry( 50, 50, 50 );
 				var material = new THREE.MeshLambertMaterial( { color: 0xffffff, overdraw: 0.5 } );
 
 				for ( var i = 0; i < 100; i ++ ) {
-
 					var cube = new THREE.Mesh( geometry, material );
 
 					cube.scale.y = Math.floor( Math.random() * 2 + 1 );
-
+					
+					//cube.position为立方体的中心
 					cube.position.x = Math.floor( ( Math.random() * 1000 - 500 ) / 50 ) * 50 + 25;
 					cube.position.y = ( cube.scale.y * 50 ) / 2;
 					cube.position.z = Math.floor( ( Math.random() * 1000 - 500 ) / 50 ) * 50 + 25;
@@ -93,13 +118,16 @@
 
 				// Lights
 
+				//环境光(影响整个场景的光源)
 				var ambientLight = new THREE.AmbientLight( Math.random() * 0x10 );
 				scene.add( ambientLight );
 
+				//方向光(一种类似太阳的光，其光照的强度不随距离而变化)
 				var directionalLight = new THREE.DirectionalLight( Math.random() * 0xffffff );
 				directionalLight.position.x = Math.random() - 0.5;
 				directionalLight.position.y = Math.random() - 0.5;
 				directionalLight.position.z = Math.random() - 0.5;
+				//normalize(): 单位化向量，使其长度为1
 				directionalLight.position.normalize();
 				scene.add( directionalLight );
 
@@ -111,43 +139,55 @@
 				scene.add( directionalLight );
 
 				renderer = new THREE.CanvasRenderer();
+				//设置渲染器的"清除色"和"透明度"
 				renderer.setClearColor( 0xf0f0f0 );
+                //设置屏幕像素比，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
 				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				 //将渲染器的DOM元素(即Canvas)添加到HTML中
 				container.appendChild( renderer.domElement );
 
+				//统计插件(FPS，渲染时间，chrome内存使用率)
 				stats = new Stats();
+				//这里注意，统计插件的dom元素是"dom"，而不是domElement
 				container.appendChild( stats.dom );
-
-				//
 
 				window.addEventListener( 'resize', onWindowResize, false );
 			}
 
 			function onWindowResize() {
+				//重新调整正投影相机的上下左右4个面
 				camera.left = window.innerWidth / - 2;
 				camera.right = window.innerWidth / 2;
 				camera.top = window.innerHeight / 2;
 				camera.bottom = window.innerHeight / - 2;
 
+				//更新相机的投影矩阵
 				camera.updateProjectionMatrix();
 
+				//重新设置渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
 			}
 
 			function animate() {
 				requestAnimationFrame( animate );
 
+				//这里可以在render前后使用stats.begin和stats.end，也可以在每次渲染的时候调用一次stats.update
 				stats.begin();
 				render();
 				stats.end();
 			}
 
 			function render() {
+				//Date.now()得到的是当前时间戳，单位毫秒
 				var timer = Date.now() * 0.0001;
-
+				
+				//相机绕着场景中央，在半径200的圆周上往复运动
 				camera.position.x = Math.cos( timer ) * 200;
 				camera.position.z = Math.sin( timer ) * 200;
+				
+				//调整相机视角，对着场景中央
 				camera.lookAt( scene.position );
 
 				renderer.render( scene, camera );

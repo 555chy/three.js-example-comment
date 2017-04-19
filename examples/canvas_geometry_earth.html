@@ -79,6 +79,7 @@
 				container = document.getElementById( 'container' );
 
 				/*
+				透视相机
 				PerspectiveCamera(fov, aspect, near, far)
                     fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
                     aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
@@ -168,10 +169,7 @@
 				mesh.rotation.x = - Math.PI / 2;
 				group.add( mesh );
 
-				/*
-				这里不能使用WebGLRenderer，因为无法加载TextureLoader纹理，原因未知！！！
-				renderer = new THREE.WebGLRenderer();
-				*/
+				//这里不能使用WebGLRenderer，因为不能直接使用未经处理的图片类型（gif，jpg，png等）作为纹理
 				renderer = new THREE.CanvasRenderer();
 				
 				//设置渲染器的"清除色"和"透明度"

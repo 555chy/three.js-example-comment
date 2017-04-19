@@ -167,8 +167,8 @@
 				mesh.rotation.x = - Math.PI / 2;
 				group.add( mesh );
 
-				renderer = new THREE.WebGLRenderer();
-				//renderer = new THREE.SoftwareRenderer();
+				//这里不能使用WebGLRenderer，因为不能直接使用未经处理的图片类型（gif，jpg，png等）作为纹理
+				renderer = new THREE.SoftwareRenderer();
 				//设置渲染器的"清除色"和"透明度"
 				renderer.setClearColor( 0x000000 );
 				//设置待渲染场景的大小

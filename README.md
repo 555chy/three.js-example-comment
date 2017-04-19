@@ -18,11 +18,11 @@
 - [canvas_geometry_hierarchy.html](examples/canvas_geometry_hierarchy.html)
 - [canvas_particles_random.html](examples/canvas_particles_random.html)
 - [canvas_lines.html](examples/canvas_lines.html)
+- [canvas_camera_orthographic.html](examples/canvas_camera_orthographic.html)
 
 ## 当前批阅项
-
-- [canvas_camera_orthographic.html](examples/canvas_camera_orthographic.html)
 - [canvas_camera_orthographic2.html](examples/canvas_camera_orthographic2.html)
+- [webgl_panorama_cube.html](examples/webgl_panorama_cube.html)
 
 ***
 
@@ -51,14 +51,16 @@
 ## 相关插件
 | 插件 | 功能 |
 | :--- | :--- |
-| [three.js](build/three.js) 						| JavaScript编写的WebGL第三方库，封装了大部分常用的3D显示功能 |
-| [AsciiEffect.js](examples/js/effects/AsciiEffect.js) 			| ASCII文本画渲染效果 |
-| [stats.min.js](js/libs/stats.min.js) 					| 统计插件(FPS，渲染时间，chrome内存使用率，而且支持自定义) |
-| [dat.gui.min.js](js/libs/dat.gui.min.js)				| 参数控制器，可以向场景中添加控制条，随时调整参数 |
-| [Projector.js](examples/js/renderers/Projector.js)			| 将三维的场景投影到二维 |
+| [three.js](build/three.js) 										| JavaScript编写的WebGL第三方库，封装了大部分常用的3D显示功能 |
+| [AsciiEffect.js](examples/js/effects/AsciiEffect.js) 				| ASCII文本画渲染效果 |
+| [stats.min.js](js/libs/stats.min.js) 								| 统计插件(FPS，渲染时间，chrome内存使用率，而且支持自定义) |
+| [dat.gui.min.js](js/libs/dat.gui.min.js)							| 参数控制器，可以向场景中添加控制条，随时调整参数 |
+| [Projector.js](examples/js/renderers/Projector.js)				| 将三维的场景投影到二维 |
 | [CanvasRenderer.js](examples/js/renderers/CanvasRenderer.js)		| Canvas 2D Context API 进行渲染 |
 | [SoftwareRenderer.js](examples/js/renderers/SoftwareRenderer.js)	| 不依赖GPU进行渲染 |
-| [TrackballControls.js](js/controls/TrackballControls.js)		| 轨迹控制，鼠标左键旋转，右键平移，中键缩放 |
+| [OrbitControls.js](js/controls/OrbitControls.js)					| 轨道控制，鼠标左键旋转(与鼠标方向相同，用于非触摸屏上)，右键平移，中键缩放；也可以使用键盘控制 |
+| [TrackballControls.js](js/controls/TrackballControls.js)			| 轨迹控制，鼠标左键旋转(与鼠标方向相反，用于触摸屏上)，右键平移，中键缩放；也可以使用键盘控制 |
+
 
 ## [View Examples](examples/index.html)
 
