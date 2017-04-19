@@ -48,6 +48,18 @@
 
 ***
 
+## 相关插件
+| 插件 | 功能 |
+| :--- | :--- |
+| [three.js](build/three.js) 						| JavaScript编写的WebGL第三方库，封装了大部分常用的3D显示功能 |
+| [AsciiEffect.js](examples/js/effects/AsciiEffect.js) 			| ASCII文本画渲染效果 |
+| [stats.min.js](js/libs/stats.min.js) 					| 统计插件(FPS，渲染时间，chrome内存使用率，而且支持自定义) |
+| [dat.gui.min.js](js/libs/dat.gui.min.js)				| 参数控制器，可以向场景中添加控制条，随时调整参数 |
+| [Projector.js](examples/js/renderers/Projector.js)			| 将三维的场景投影到二维 |
+| [CanvasRenderer.js](examples/js/renderers/CanvasRenderer.js)		| Canvas 2D Context API 进行渲染 |
+| [SoftwareRenderer.js](examples/js/renderers/SoftwareRenderer.js)	| 不依赖GPU进行渲染 |
+| [TrackballControls.js](js/controls/TrackballControls.js)		| 轨迹控制，鼠标左键旋转，右键平移，中键缩放 |
+
 ## [View Examples](examples/index.html)
 
 	*Note:* 如果GitHub的当前页没有index.html的话，GitHub会按设置好的模板加载README.md
