@@ -31,24 +31,24 @@
 1. WebGLRenderer: The WebGL renderer displays your beautifully crafted scenes using WebGL.
 <br>WebGL渲染器使用WebGL展示制作的场景。
 2. CanvasRenderer: The Canvas renderer displays your beautifully crafted scenes not using WebGL, but draws it using the (slower) Canvas 2D Context API.
-<br>Canvas渲染器不使用WebGL展示制作的场景，而使用稍微慢一点的Canvas 2D Context应用程序接口来绘制它。
+Canvas渲染器不使用WebGL展示制作的场景，而使用稍微慢一点的Canvas 2D Context应用程序接口来绘制它。
 3. SoftwareRenderer: The SoftwareRenderer is a drop-in renderer for Three.js that can be used on the server and the client, if you need to be GPU independent.
 <br>Software渲染器对于Three.js来说是一种退化的渲染器，在不依赖GPU的情况下，它既可以使用在服务器上也可以使用在客户端上。
 
-	WebGL、Canvas、Software这三种渲染器理论上可以相互替换。
-	<br>但是必须注意：WebGL和HTML不同，一般的图片类型（gif，jpg，png等）是不可以直接使用的，也可以把canvas转换成纹理，总之要变换一下方法来进行渲染。
-	<br>另外，所使用的图片数据的大小必须是2的阶乘，横竖的像素长度大小必须是32x32，128x128等2的阶乘的形式。
+WebGL、Canvas、Software这三种渲染器理论上可以相互替换。
+<br>但是必须注意：WebGL和HTML不同，一般的图片类型（gif，jpg，png等）是不可以直接使用的，也可以把canvas转换成纹理，总之要变换一下方法来进行渲染。
+<br>另外，所使用的图片数据的大小必须是2的阶乘，横竖的像素长度大小必须是32x32，128x128等2的阶乘的形式。
 
-	在渲染速度方面：WebGL > Canvas > Software。
+在渲染速度方面：WebGL > Canvas > Software。
 
-	**参考:** 
-	- [WebGLRenderer](https://threejs.org/docs/index.html#Reference/Renderers/WebGLRenderer)
-	- [CanvasRenderer](https://threejs.org/docs/index.html#Examples/Renderers/CanvasRenderer)
-	- [SoftwareRenderer](https://www.npmjs.com/package/three-software-renderer)
+**参考:** 
+- [WebGLRenderer](https://threejs.org/docs/index.html#Reference/Renderers/WebGLRenderer)
+- [CanvasRenderer](https://threejs.org/docs/index.html#Examples/Renderers/CanvasRenderer)
+- [SoftwareRenderer](https://www.npmjs.com/package/three-software-renderer)
 
-	**范例:** 
-	- [canvas_geometry_earth.html](examples/canvas_geometry_earth.html)
-	- [software_geometry_earth.html](examples/canvas_geometry_earth.html)
+**范例:** 
+- [canvas_geometry_earth.html](examples/canvas_geometry_earth.html)
+- [software_geometry_earth.html](examples/canvas_geometry_earth.html)
 	
 ### mesh.applyMatrix( new THREE.Matrix4().makeScale( x, y, z ) )) 的计算过程
 1. THREE.Matrix4().makeScale(x,y,z) =》
@@ -58,7 +58,7 @@
 	{ 0, 0, z, 0 }
 	{ 0, 0, 0, 1 }
 ```
-<br>如果调用者本身的matrixWorldNeedsUpdate值为真，那么在函数applyMatrix(matrix)中，改变了matrix值后立刻就更新了position，rotation等属性
+如果调用者本身的matrixWorldNeedsUpdate值为真，那么在函数applyMatrix(matrix)中，改变了matrix值后立刻就更新了position，rotation等属性
 <br>但在函数translate(distance,axis)中改变了position等变量（或者直接改变position等属性）后并没有立刻更新matrix值，这时应该手动调用updateMatrix()。
 
 2. 几何对象的原始Matrix(跟side无关) =》
@@ -75,12 +75,12 @@
 	{ 0, 0, 	z, 		0 	  }
 	{ 0, 0, 	0, 		1	  }
 ```
-<br>xyz表示相乘之后的符号位，负号会改变原先的material中的side参数
+xyz表示相乘之后的符号位，负号会改变原先的material中的side参数
 
-<br>Error: WebGL: texImage2D: Incurred CPU-side conversion, which is very slow.
+Error: WebGL: texImage2D: Incurred CPU-side conversion, which is very slow.
 <br>Error: WebGL: texImage2D: Chosen format/type incurred an expensive reformat 0x1908/0x1401
 
-<br>Multiplies the current matrix by the one specified through the parameters. 
+Multiplies the current matrix by the one specified through the parameters. 
 <br>This is very slow because it will try to calculate the inverse of the transform, so avoid it whenever possible. 
 <br>The equivalent function in OpenGL is glMultMatrix(). 
 
@@ -108,6 +108,6 @@
 
 ## [View Examples](examples/index.html)
 
-	**Note:** 如果GitHub的当前页没有index.html的话，GitHub会按设置好的模板加载README.md
+**Note:** 如果GitHub的当前页没有index.html的话，GitHub会按设置好的模板加载README.md
 
 
