@@ -84,9 +84,9 @@
 		通过一个指定的参数乘以当前矩阵，这是非常慢的，因为它会尝试计算逆变换，所以如果可能的话尽量避免使用它
 ```
 
-	至于 mesh.applyMatrix 中为什么会计算出符号位，这个过程我也还没参透！！！
+   至于 mesh.applyMatrix 中为什么会计算出符号位，这个过程我也还没参透！！！
    
-	*范例:*
+   *范例:*
 	- [canvas_geometry_earth.html](examples/canvas_geometry_earth.html)
 	
 ***
