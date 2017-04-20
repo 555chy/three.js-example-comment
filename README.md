@@ -53,27 +53,27 @@ WebGL、Canvas、Software这三种渲染器理论上可以相互替换。
 ### mesh.applyMatrix( new THREE.Matrix4().makeScale( x, y, z ) )) 的计算过程
 1. THREE.Matrix4().makeScale(x,y,z) =》
 ```markdown
-	{ x, 0, 0, 0 }
-	{ 0, y, 0, 0 }
-	{ 0, 0, z, 0 }
-	{ 0, 0, 0, 1 }
+{ x, 0, 0, 0 }
+{ 0, y, 0, 0 }
+{ 0, 0, z, 0 }
+{ 0, 0, 0, 1 }
 ```
 如果调用者本身的matrixWorldNeedsUpdate值为真，那么在函数applyMatrix(matrix)中，改变了matrix值后立刻就更新了position，rotation等属性
 <br>但在函数translate(distance,axis)中改变了position等变量（或者直接改变position等属性）后并没有立刻更新matrix值，这时应该手动调用updateMatrix()。
 
 2. 几何对象的原始Matrix(跟side无关) =》
 ```markdown
-	{ 1, 0, 0, 0 }
-	{ 0, 1, 0, 0 }
-	{ 0, 0, 1, 0 }
-	{ 0, 0, 0, 1 }
+{ 1, 0, 0, 0 }
+{ 0, 1, 0, 0 }
+{ 0, 0, 1, 0 }
+{ 0, 0, 0, 1 }
 ```
 3. mesh.applyMatrix之后的值为 =》
 ```markdown
-	{ x, 0*xyz, 0*xyz,  0*xyz }
-	{ 0, y, 	0, 		0 	  }
-	{ 0, 0, 	z, 		0 	  }
-	{ 0, 0, 	0, 		1	  }
+{ x, 0*xyz, 0*xyz,  0*xyz }
+{ 0, y, 	0, 		0 	  }
+{ 0, 0, 	z, 		0 	  }
+{ 0, 0, 	0, 		1	  }
 ```
 xyz表示相乘之后的符号位，负号会改变原先的material中的side参数
 
@@ -97,14 +97,18 @@ Multiplies the current matrix by the one specified through the parameters.
 | 插件 | 功能 |
 | :--- | :--- |
 | [three.js](build/three.js) 										| JavaScript编写的WebGL第三方库，封装了大部分常用的3D显示功能 |
-| [AsciiEffect.js](examples/js/effects/AsciiEffect.js) 				| ASCII文本画渲染效果 |
-| [stats.min.js](js/libs/stats.min.js) 								| 统计插件(FPS，渲染时间，chrome内存使用率，而且支持自定义) |
-| [dat.gui.min.js](js/libs/dat.gui.min.js)							| 参数控制器，可以向场景中添加控制条，随时调整参数 |
+| [Detector.js](examples/js/Detector.js)							| 检测支持(canvas，webgl，workers，fileApi) |
+| [stats.min.js](examples/js/libs/stats.min.js) 					| 统计插件(FPS，渲染时间，chrome内存使用率，而且支持自定义) |
+| [dat.gui.min.js](examples/js/libs/dat.gui.min.js)					| 参数控制器，可以向场景中添加控制条，随时调整参数 |
+|||
 | [Projector.js](examples/js/renderers/Projector.js)				| 将三维的场景投影到二维 |
 | [CanvasRenderer.js](examples/js/renderers/CanvasRenderer.js)		| Canvas 2D Context API 进行渲染 |
 | [SoftwareRenderer.js](examples/js/renderers/SoftwareRenderer.js)	| 不依赖GPU进行渲染 |
-| [OrbitControls.js](js/controls/OrbitControls.js)					| 轨道控制，鼠标左键旋转(与鼠标方向相同，用于非触摸屏上)，右键平移，中键缩放；也可以使用键盘控制 |
-| [TrackballControls.js](js/controls/TrackballControls.js)			| 轨迹控制，鼠标左键旋转(与鼠标方向相反，用于触摸屏上)，右键平移，中键缩放；也可以使用键盘控制 |
+|||
+| [OrbitControls.js](examples/js/controls/OrbitControls.js)			| 轨道控制，鼠标左键旋转(与鼠标方向相同，用于非触摸屏上)，右键平移，中键缩放；也可以使用键盘控制 |
+| [TrackballControls.js](examples/js/controls/TrackballControls.js)	| 轨迹控制，鼠标左键旋转(与鼠标方向相反，用于触摸屏上)，右键平移，中键缩放；也可以使用键盘控制 |
+|||
+| [AsciiEffect.js](examples/js/effects/AsciiEffect.js) 				| ASCII文本画渲染效果 |
 
 ## [View Examples](examples/index.html)
 

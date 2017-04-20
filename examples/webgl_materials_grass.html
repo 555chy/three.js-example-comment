@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js webgl - materials - grass</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -20,10 +24,13 @@
 	<body>
 		<script src="../build/three.js"></script>
 
+		<!--
+		检测支持(canvas，webgl，workers，fileApi)
+		-->
 		<script src="js/Detector.js"></script>
 
 		<script>
-
+			//如果不支持webgl，则会在当前的父布局上添加一个不支持的提示信息DIV
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 			var camera, scene, renderer;
@@ -32,9 +39,19 @@
 			animate();
 
 			function init() {
-
+				/*
+				透视相机
+				PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
+				//定义相机的位置，有如下两种方式。如果不设置的话，相机位置为默认的Vector3{x:0,y:0,z:0}
 				camera.position.set( 0, 75, 100 );
+				//camera.position.y = 75;
+				//camera.position.z = 100;
 
 				scene = new THREE.Scene();
 
@@ -57,11 +74,11 @@
 					mesh.position.y = i * 0.25;
 					mesh.rotation.x = - Math.PI / 2;
 
-					scene.add( mesh );
+					//scene.add( mesh );
 
 				}
 
-				scene.children.reverse();
+				//scene.children.reverse();
 
 				renderer = new THREE.WebGLRenderer();
 				renderer.setClearColor( 0x003300 );
@@ -69,23 +86,18 @@
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				document.body.appendChild( renderer.domElement );
 
-				//
 
 				window.addEventListener( 'resize', onWindowResize, false );
-
 			}
 
 			function onWindowResize() {
-
 				camera.aspect = window.innerWidth / window.innerHeight;
 				camera.updateProjectionMatrix();
 
 				renderer.setSize( window.innerWidth, window.innerHeight );
-
 			}
 
 			function generateTexture() {
-
 				var canvas = document.createElement( 'canvas' );
 				canvas.width = 512;
 				canvas.height = 512;
@@ -105,41 +117,32 @@
 				context.globalCompositeOperation = 'lighter';
 
 				return canvas;
-
 			}
 
-			//
-
 			function animate() {
-
 				requestAnimationFrame( animate );
 
 				render();
-
 			}
 
 			function render() {
-
+				//Date.now()获取时间戳(单位:毫秒)，在JS中没有整除的概念，所以除出来一般都是浮点类型的
 				var time = Date.now() / 6000;
 
+				//照相机围绕着场景中央，在一个半径为80的圆周上循环运动
 				camera.position.x = 80 * Math.cos( time );
 				camera.position.z = 80 * Math.sin( time );
 
+				//相机注视着场景中央
 				camera.lookAt( scene.position );
 
 				for ( var i = 0, l = scene.children.length; i < l; i ++ ) {
-
 					var mesh = scene.children[ i ];
 					mesh.position.x = Math.sin( time * 4 ) * i * i * 0.005;
 					mesh.position.z = Math.cos( time * 6 ) * i * i * 0.005;
-
 				}
-
 				renderer.render( scene, camera );
-
 			}
-
 		</script>
-
 	</body>
 </html>
