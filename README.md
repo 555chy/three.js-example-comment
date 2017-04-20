@@ -46,6 +46,46 @@
 	- [CanvasRenderer](https://threejs.org/docs/index.html#Examples/Renderers/CanvasRenderer)
 	- [SoftwareRenderer](https://www.npmjs.com/package/three-software-renderer)
 
+	*范例:* 
+	- [canvas_geometry_earth.html](examples/canvas_geometry_earth.html)
+	- [software_geometry_earth.html](examples/canvas_geometry_earth.html)
+	
+### mesh.applyMatrix( new THREE.Matrix4().makeScale( x, y, z ) )) 的计算过程
+
+	THREE.Matrix4().makeScale(x,y,z) =》
+		{ x, 0, 0, 0 }
+		{ 0, y, 0, 0 }
+		{ 0, 0, z, 0 }
+		{ 0, 0, 0, 1 }
+		如果调用者本身的matrixWorldNeedsUpdate值为真，那么在函数applyMatrix(matrix)中，改变了matrix值后立刻就更新了position，rotation等属性
+		但在函数translate(distance,axis)中改变了position等变量（或者直接改变position等属性）后并没有立刻更新matrix值，这时应该手动调用updateMatrix()。
+
+	几何对象的原始Matrix(跟side无关) =》
+		{ 1, 0, 0, 0 }
+		{ 0, 1, 0, 0 }
+		{ 0, 0, 1, 0 }
+		{ 0, 0, 0, 1 }
+
+	mesh.applyMatrix之后的值为 =》
+		{ x, 0*xyz, 0*xyz,  0*xyz }
+		{ 0, y, 	0, 		0 	  }
+		{ 0, 0, 	z, 		0 	  }
+		{ 0, 0, 	0, 		1	  }
+		xyz表示相乘之后的符号位，负号会改变原先的material中的side参数
+		
+		Error: WebGL: texImage2D: Incurred CPU-side conversion, which is very slow.
+		Error: WebGL: texImage2D: Chosen format/type incurred an expensive reformat 0x1908/0x1401
+
+		Multiplies the current matrix by the one specified through the parameters. 
+		This is very slow because it will try to calculate the inverse of the transform, so avoid it whenever possible. 
+		The equivalent function in OpenGL is glMultMatrix(). 
+
+		通过一个指定的参数乘以当前矩阵，这是非常慢的，因为它会尝试计算逆变换，所以如果可能的话尽量避免使用它
+
+	至于 mesh.applyMatrix 中为什么会计算出符号位，这个过程我也还没参透！！！
+	
+	*范例:* 
+	- [canvas_geometry_earth.html](examples/canvas_geometry_earth.html)
 ***
 
 ## 相关插件
