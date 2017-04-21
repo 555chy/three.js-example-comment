@@ -169,7 +169,11 @@
 				mesh.rotation.x = - Math.PI / 2;
 				group.add( mesh );
 
-				//这里不能使用WebGLRenderer，因为不能直接使用未经处理的图片类型（gif，jpg，png等）作为纹理
+				/*
+				这里如果直接换成WebGLRenderer的话，地球是黑的，这是因为没有环境光。所以要这么替换
+				renderer = new THREE.WebGLRenderer();
+				scene.add( new THREE.AmbientLight( 0xffffff ) );
+				*/
 				renderer = new THREE.CanvasRenderer();
 				
 				//设置渲染器的"清除色"和"透明度"
@@ -195,11 +199,12 @@
 				windowHalfX = window.innerWidth / 2;
 				windowHalfY = window.innerHeight / 2;
 
-				 //重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
+				//重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
                 camera.aspect = window.innerWidth / window.innerHeight;
                 //更新透视相机的投影矩阵
                 camera.updateProjectionMatrix();
 
+				//重新设置渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
 			}
 

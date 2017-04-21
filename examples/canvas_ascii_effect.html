@@ -149,7 +149,7 @@
 			function onWindowResize() {
 				//更新透视相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
 				camera.aspect = window.innerWidth / window.innerHeight;
-				//更新相机的投影矩阵
+				//更新透视相机的投影矩阵
 				camera.updateProjectionMatrix();
 
 				//重新设置渲染场景的大小

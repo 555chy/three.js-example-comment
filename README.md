@@ -19,10 +19,12 @@
 - [canvas_particles_random.html](examples/canvas_particles_random.html)
 - [canvas_lines.html](examples/canvas_lines.html)
 - [canvas_camera_orthographic.html](examples/canvas_camera_orthographic.html)
+- [webgl_panorama_cube.html](examples/webgl_panorama_cube.html)
+- [webgl_materials_grass.html](examples/webgl_materials_grass.html)
+- [webgl_geometries.html](examples/webgl_geometries.html)
 
 ## 当前批阅项
 - [canvas_camera_orthographic2.html](examples/canvas_camera_orthographic2.html)
-- [webgl_panorama_cube.html](examples/webgl_panorama_cube.html)
 
 ***
 
@@ -35,8 +37,7 @@ Canvas渲染器不使用WebGL展示制作的场景，而使用稍微慢一点的
 3. SoftwareRenderer: The SoftwareRenderer is a drop-in renderer for Three.js that can be used on the server and the client, if you need to be GPU independent.
 <br>Software渲染器对于Three.js来说是一种退化的渲染器，在不依赖GPU的情况下，它既可以使用在服务器上也可以使用在客户端上。
 
-WebGL、Canvas、Software这三种渲染器理论上可以相互替换。
-<br>但是必须注意：WebGL和HTML不同，一般的图片类型（gif，jpg，png等）是不可以直接使用的，也可以把canvas转换成纹理，总之要变换一下方法来进行渲染。
+WebGL、Canvas、Software这三种渲染器理论上可以相互替换。但是WebGL需要环境光否则是黑色的，其它两个即使没有环境光也能渲染出材质。
 <br>另外，所使用的图片数据的大小必须是2的阶乘，横竖的像素长度大小必须是32x32，128x128等2的阶乘的形式。
 
 在渲染速度方面：WebGL > Canvas > Software。
@@ -68,14 +69,28 @@ WebGL、Canvas、Software这三种渲染器理论上可以相互替换。
 { 0, 0, 1, 0 }
 { 0, 0, 0, 1 }
 ```
+
 3. mesh.applyMatrix之后的值为 =》
 ```markdown
-{ x, 0*xyz, 0*xyz,  0*xyz }
-{ 0, y, 	0, 		0 	  }
-{ 0, 0, 	z, 		0 	  }
+{ x, 0*xy, 	0*yz,  	0*xyz }
+{ 0, y, 	0, 		0	  }
+{ 0, 0*x, 	z, 		0	  }
 { 0, 0, 	0, 		1	  }
 ```
 xyz表示相乘之后的符号位，负号会改变原先的material中的side参数
+
+4. 原始法向量normalMatrix为 =》
+```markdown
+{  1,   0, 	  -0	 }
+{ -0,   1, 	   6.123 }
+{  0,  -6.123, 1	 }
+```
+5. mesh.applyMatrix之后，mesh.normalMatrix的值为 =》
+```markdown
+{  x,   	 0*x*z,	  -0*x	 	}
+{ -0*xy,   	 y, 	   6.123*y 	}
+{  0*x*y*z, -6.123*z,  1*z		}
+```
 
 Error: WebGL: texImage2D: Incurred CPU-side conversion, which is very slow.
 <br>Error: WebGL: texImage2D: Chosen format/type incurred an expensive reformat 0x1908/0x1401
@@ -86,10 +101,10 @@ Multiplies the current matrix by the one specified through the parameters.
 
 通过一个指定的参数乘以当前矩阵，这是非常慢的，因为它会尝试计算逆变换，所以如果可能的话尽量避免使用它
 
-至于 mesh.applyMatrix 中为什么会计算出符号位，这个过程我也还没参透！！！
+至于 mesh.applyMatrix 中为什么会计算出符号位，还有怎么计算的，这个过程我也还没参透！！！
 
 **范例:**
-- [canvas_geometry_earth.html](examples/canvas_geometry_earth.html)
+- [webgl_panorama_cube.html](examples/webgl_panorama_cube.html)
 
 ***
 

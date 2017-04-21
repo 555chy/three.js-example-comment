@@ -118,12 +118,13 @@
 
 				// Lights
 
-				//环境光(影响整个场景的光源)
+				//添加环境光，提供的是在不同位置和方向上强度都相同的光源，相当于光照模型中各物体之间的反射光，因此通常用来表现光强中非常弱的那部分光
 				var ambientLight = new THREE.AmbientLight( Math.random() * 0x10 );
 				scene.add( ambientLight );
 
-				//方向光(一种类似太阳的光，其光照的强度不随距离而变化)
+				//平行光光源就如同太阳，若在场景中添加了一个平行光，它可以影响场景中的所有物体，而无论平行光光源设置在任何位置
 				var directionalLight = new THREE.DirectionalLight( Math.random() * 0xffffff );
+				//directionLight(平行光)的position实际上存储的是它的方向，而非位置
 				directionalLight.position.x = Math.random() - 0.5;
 				directionalLight.position.y = Math.random() - 0.5;
 				directionalLight.position.z = Math.random() - 0.5;

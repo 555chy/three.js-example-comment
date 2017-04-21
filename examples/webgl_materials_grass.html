@@ -10,13 +10,17 @@
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
-				background:#030;
+				background:#000;
 				color:#fff;
 				padding:0;
 				margin:0;
-				overflow:hidden;
 				font-family:georgia;
 				text-align:center;
+				overflow:hidden;
+			}
+			#testCanvas {
+				position:absolute;
+				background: white;
 			}
 		</style>
 	</head>
@@ -29,6 +33,7 @@
 		-->
 		<script src="js/Detector.js"></script>
 
+		<canvas id="testCanvas" width="100px" height="100px">Your browser can not support canvas</canvas>
 		<script>
 			//如果不支持webgl，则会在当前的父布局上添加一个不支持的提示信息DIV
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
@@ -55,67 +60,126 @@
 
 				scene = new THREE.Scene();
 
+				/*
+				这个类是另一种创建几何体对象的方式,它将所有的数据包括顶点位置,法线,面,颜色,uv和其它的自定义属性存在缓冲区, 
+				这样可以减少GPU的负荷,BufferGeometry同样也比Geometry对象复杂,增加了使用的难度,这里的属性都是存放在数组中, 
+				比如顶点位置不是Vector3对象,颜色也不是color对象,而是数组.需要访问这些属性,需要从属性缓冲区中读原始数据. 
+				其纹理图与 PlaneGeometry 完全一样
+				*/
 				var geometry = new THREE.PlaneBufferGeometry( 100, 100 );
 
+				//画布材质
 				var texture = new THREE.CanvasTexture( generateTexture() );
-
+				
+				//绘制用于测试的材质
+				var testCanvas = document.getElementById("testCanvas");
+				testCanvas.getContext("2d").drawImage(texture.image,0,0,texture.image.width,texture.image.height);
+				
 				for ( var i = 0; i < 15; i ++ ) {
-
-					var material = new THREE.MeshBasicMaterial( {
-						color: new THREE.Color().setHSL( 0.3, 0.75, ( i / 15 ) * 0.4 + 0.1 ),
-						map: texture,
-						depthTest: false,
-						depthWrite: false,
-						transparent: true
-					} );
-
+					var material;
+					if(i == 0) {
+						//底层要铺一层纯色当背景，不然由于transparet，会看到renderer的clearColor
+						material = new THREE.MeshBasicMaterial( {color: 0x003300 });
+					} else {
+						material = new THREE.MeshBasicMaterial( {
+							//亮度逐渐增大
+							color: new THREE.Color().setHSL( 0.3, 0.75, ( i / 15 ) * 0.4 + 0.1 ),
+							//没有map的话，就是一层层的绿色矩形叠在一起
+							map: texture,
+							//这两句我也不知道有什么用
+							//depthTest: false,
+							//depthWrite: false,
+							transparent: true
+						} );
+					}
+					//console.log(material.color.getHexString());
 					var mesh = new THREE.Mesh( geometry, material );
+					mesh.name = "mesh" + i;
 
 					mesh.position.y = i * 0.25;
+					//mesh.position.y = i * 3.25;
+					//初始的平面在XY面上，要绕着X轴按右手螺旋定则旋转到XZ平面上
 					mesh.rotation.x = - Math.PI / 2;
-
-					//scene.add( mesh );
-
+					
+					//if(i%5==0)
+					scene.add( mesh );
 				}
 
-				//scene.children.reverse();
+				//将场景的子元素倒序排列
+				scene.children.reverse();
 
 				renderer = new THREE.WebGLRenderer();
-				renderer.setClearColor( 0x003300 );
+				//设置渲染器的"清除色"和"透明度"
+				renderer.setClearColor( 0xff3300 );
+				//设置屏幕像素比，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
 				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
 				document.body.appendChild( renderer.domElement );
-
 
 				window.addEventListener( 'resize', onWindowResize, false );
 			}
 
 			function onWindowResize() {
+				//更新透视相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
 				camera.aspect = window.innerWidth / window.innerHeight;
+				//更新透视相机的投影矩阵
 				camera.updateProjectionMatrix();
 
+				//重新设置渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
 			}
 
 			function generateTexture() {
 				var canvas = document.createElement( 'canvas' );
+				//canvas的宽和高没有固定要求，可以随意
 				canvas.width = 512;
 				canvas.height = 512;
 
 				var context = canvas.getContext( '2d' );
 
 				for ( var i = 0; i < 20000; i ++ ) {
-
+					//HSL即是代表色相(Hue)，饱和度(Saturation)，明度(Lightness)三个通道的颜色
 					context.fillStyle = 'hsl(0,0%,' + ( Math.random() * 50 + 50 ) + '%)';
+					//设置路径开始
 					context.beginPath();
+					/*
+					在画布上圈出一个圆形或扇形的路径
+					context.arc(x,y,r,sAngle,eAngle,counterclockwise);
+						x: 圆的中心的X坐标。
+						y: 圆的中心的Y坐标。
+						r: 圆的半径。
+						sAngle: 起始角，以弧度计(三点钟方向为0度)
+						eAngle: 结束角，以弧度计。
+						counterclockwise: 规定应该逆时针还是顺时针绘图。False=顺时针，true=逆时针。
+					*/
 					context.arc( Math.random() * canvas.width, Math.random() * canvas.height, Math.random() + 0.15, 0, Math.PI * 2, true );
+					//使用fillStyle填充圆或扇形
 					context.fill();
-
 				}
-
-				context.globalAlpha = 0.075;
-				context.globalCompositeOperation = 'lighter';
-
+				
+				//设置全局透明度
+				//都已经绘制过了，所以这句话在这里并没有什么用
+				//context.globalAlpha = 0.075;
+				
+				/*
+				globalCompositeOperation 属性设置或返回如何将一个源(新的)图像绘制到目标(已有)的图像上。
+				source-over: 默认。在目标图像上显示源图像。
+				source-atop: 在目标图像顶部显示源图像。源图像位于目标图像之外的部分是不可见的。
+				source-in: 在目标图像中显示源图像。只有目标图像内的源图像部分会显示，目标图像是透明的。
+				source-out: 在目标图像之外显示源图像。只会显示目标图像之外源图像部分，目标图像是透明的。
+				destination-over: 在源图像上方显示目标图像。
+				destination-atop: 在源图像顶部显示目标图像。源图像之外的目标图像部分不会被显示。
+				destination-in: 在源图像中显示目标图像。只有源图像内的目标图像部分会被显示，源图像是透明的。
+				destination-out: 在源图像外显示目标图像。只有源图像外的目标图像部分会被显示，源图像是透明的。
+				lighter: 显示源图像+目标图像。
+				copy: 显示源图像。忽略目标图像。
+				xor: 使用异或操作对源图像与目标图像进行组合。
+				*/
+				//都已经绘制过了，所以这句话在这里并没有什么用
+				//context.globalCompositeOperation = 'lighter';
+				
 				return canvas;
 			}
 
@@ -138,6 +202,7 @@
 
 				for ( var i = 0, l = scene.children.length; i < l; i ++ ) {
 					var mesh = scene.children[ i ];
+					//由于前面倒序排列过，因此在移动位置的时候底部基本是保持不变的
 					mesh.position.x = Math.sin( time * 4 ) * i * i * 0.005;
 					mesh.position.z = Math.cos( time * 6 ) * i * i * 0.005;
 				}

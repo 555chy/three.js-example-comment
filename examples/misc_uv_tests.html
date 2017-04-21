@@ -54,7 +54,7 @@
 			test('矩形', 'new THREE.PlaneBufferGeometry( 100, 100, 4, 4 )', new THREE.PlaneBufferGeometry( 100, 100, 4, 4 ));
 
 			/*
-			圆(或部分圆)
+			圆
 			function CircleGeometry( radius, segments, thetaStart, thetaLength ) {……}
 				radius:			半径
 				segments:		创建圆所用的三角形面的数量，至少3个，默认为8。值越大，创建出的圆越光滑
@@ -63,6 +63,18 @@
 			*/
 			test('圆', 'new THREE.CircleGeometry( 75, 12 )', new THREE.CircleGeometry( 75, 12));
 			
+			/*
+			圆环
+			RingGeometry(innerRadius, outerRadius, thetaSegments, phiSegments, thetaStart, thetaLength)
+			innerRadius:		内圆半径，默认为0。但是当设置为0时，并不能正常工作。
+			outerRadius:		外圆半径，默认为50
+			thetaSegments:		圆环的分片数，最小3个，默认为8。值越大，创建出的圆越光滑
+			phiSegments:		圆环管道部分的分片数，最小为1，默认为8。
+			thetaStart:			起始角，默认为0。3点钟方向，逆时针为正
+			thetaLength:		角度，默认为 2*Math.PI
+			*/
+			test('圆环', 'new THREE.RingGeometry( 25, 75, 12 )', new THREE.RingGeometry( 25, 75, 12,3));
+
 			/*
 			球体
 			function SphereGeometry( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) {……}
@@ -153,7 +165,7 @@
 			test('通过截面顶点数组(points)创建旋转几何体', 'new THREE.LatheGeometry( points, 8 )', new THREE.LatheGeometry( points, 8 ));
 
 			/*
-			圆环
+			甜甜圈
 			function TorusGeometry( radius, tube, radialSegments, tubularSegments, arc ) {……}
 				radius:			圆环的半径
 				tube:			圆环管道的半径

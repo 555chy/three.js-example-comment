@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js webgl - geometries</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -14,14 +18,19 @@
 		</style>
 	</head>
 	<body>
-
 		<script src="../build/three.js"></script>
 
+		<!--
+		检测支持(canvas，webgl，workers，fileApi)
+		-->
 		<script src="js/Detector.js"></script>
+		<!--
+		统计插件(FPS，渲染时间，chrome内存使用率)，min表示js代码经过压缩
+		-->
 		<script src="js/libs/stats.min.js"></script>
 
 		<script>
-
+			//如果不支持webgl，则会在当前的父布局上添加一个不支持的提示信息DIV
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 			var container, stats;
@@ -32,159 +41,302 @@
 			animate();
 
 			function init() {
-
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
+				/*
+				透视相机
+				PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+				//定义相机的位置，有如下两种方式。如果不设置的话，相机位置为默认的Vector3{x:0,y:0,z:0}
+				//camera.position.set( 0, 400, 0 );
 				camera.position.y = 400;
 
 				scene = new THREE.Scene();
 
 				var light, object;
-
+	
+				//添加环境光，提供的是在不同位置和方向上强度都相同的光源，相当于光照模型中各物体之间的反射光，因此通常用来表现光强中非常弱的那部分光
 				scene.add( new THREE.AmbientLight( 0x404040 ) );
 
+				//平行光光源就如同太阳，若在场景中添加了一个平行光，它可以影响场景中的所有物体，而无论平行光光源设置在任何位置
 				light = new THREE.DirectionalLight( 0xffffff );
+				//directionLight(平行光)的position实际上存储的是它的方向，而非位置
 				light.position.set( 0, 1, 0 );
 				scene.add( light );
 
 				var map = new THREE.TextureLoader().load( 'textures/UV_Grid_Sm.jpg' );
+				/*
+				.wrapS
+				This defines how the texture is wrapped horizontally and corresponds to U in UV mapping.
+				The default is THREE.ClampToEdgeWrapping, where the edge is clamped to the outer edge texels. 
+				The other two choices are THREE.RepeatWrapping and THREE.MirroredRepeatWrapping. 
+				
+				它定义了在水平方向上如何包装纹理，相当于UV映射中的U。
+				默认值是THREE.ClampToEdgeWrapping(边缘拉伸)，它的边缘会被拉伸到边缘纹素的外面。
+				其它的两个选项是THREE.RepeatWrapping(重复)和THREE.MirroredRepeatWrapping(镜像)。
+				
+				.wrapT
+				This defines how the texture is wrapped vertically and corresponds to V in UV mapping.
+				The same choices are available as for .wrapS .
+				NOTE: tiling of images in textures only functions if image dimensions are powers of two (2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, ...) in terms of pixels. 
+				Individual dimensions need not be equal, but each must be a power of two. This is a limitation of WebGL, not three.js. 
+				
+				它定义了在垂直方向上如何包装纹理，相当于UV映射中的V。
+				与wrapS基本一致的选项。
+				注意：将图片平铺成纹理，只有在图片尺寸是2的幂(2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, ...)像素单位的时候才会生效。
+				个别的尺寸不需要相等，但是每一个都必须是2的幂。这是WebGL的限制，不是three.js的。
+				*/
 				map.wrapS = map.wrapT = THREE.RepeatWrapping;
+				/*
+				The number of samples taken along the axis through the pixel that has the highest density of texels. By default, this value is 1. 
+				A higher value gives a less blurry result than a basic mipmap, at the cost of more texture samples being used.
+				Use renderer.getMaxAnisotropy() to find the maximum valid anisotropy value for the GPU; this value is usually a power of 2. 
+				
+				坐标轴方向的采样数目中拥有最高密度的纹素的像素值。默认情况下，该值是1。
+				与基础的纹理映射相比，其值越高越不模糊，但这是以使用更多的纹理样式为代价的。
+				使用renderer.getMaxAnisotropy()来确定GPU合法的anisotropy的最大值。该值通常是2的幂。
+				*/
 				map.anisotropy = 16;
 
 				var material = new THREE.MeshLambertMaterial( { map: map, side: THREE.DoubleSide } );
 
-				//
-
+				/*
+				球体
+				function SphereGeometry( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) {……}
+					radius:			半径
+					widthSegments:	水平方向上的分段数，段数越多，球体表面越光滑，默认是8。最小是3
+					heightSegments:	垂直方向上的分段数，段数越多，球体表面越光滑，默认是6，最小是2
+					phiStart:		从X轴的什么地方开始绘制(X轴负方向为起始点，逆时针方向为正，即符合右手螺旋定则)
+					phiLength:		绘制的弧度
+					thetaStart:		从Y轴的什么地方开始绘制(Y轴正方向为起始点，逆时针方向为正，即符合右手螺旋定则)
+					thetaLength:	绘制的弧度
+				*/
 				object = new THREE.Mesh( new THREE.SphereGeometry( 75, 20, 10 ), material );
 				object.position.set( -400, 0, 200 );
 				scene.add( object );
 
+				/*
+				正20面体(有20个相同三角形面的多面体)
+				function IcosahedronGeometry( radius, detail ) {……}
+					radius:			半径		
+					detail:			细节层次，可以控制在视角接近物体的时候显示面数多的精细模型，而在远离物体时显示面数较少的粗略模型
+				*/
 				object = new THREE.Mesh( new THREE.IcosahedronGeometry( 75, 1 ), material );
 				object.position.set( -200, 0, 200 );
 				scene.add( object );
 
+				/*
+				正8面体
+				function OctahedronGeometry( radius, detail ) {……}
+					radius:			半径		
+					detail:			细节层次，可以控制在视角接近物体的时候显示面数多的精细模型，而在远离物体时显示面数较少的粗略模型
+				*/
 				object = new THREE.Mesh( new THREE.OctahedronGeometry( 75, 2 ), material );
 				object.position.set( 0, 0, 200 );
 				scene.add( object );
 
+				/*
+				正4面体
+				function TetrahedronGeometry( radius, detail ) {……}
+					radius:			半径		
+					detail:			细节层次，可以控制在视角接近物体的时候显示面数多的精细模型，而在远离物体时显示面数较少的粗略模型
+				*/
 				object = new THREE.Mesh( new THREE.TetrahedronGeometry( 75, 0 ), material );
 				object.position.set( 200, 0, 200 );
 				scene.add( object );
 
-				//
-
+				/*
+				矩形(或平面)
+				function PlaneGeometry( width, height, widthSegments, heightSegments ) {……}
+					width:			宽度
+					height:			高度
+					widthSegments:	宽度段数，指定矩形的宽度应该划分为几份
+					heightSegments:	高度段数，指定矩形的高度应该划分为几份
+				*/
 				object = new THREE.Mesh( new THREE.PlaneGeometry( 100, 100, 4, 4 ), material );
 				object.position.set( -400, 0, 0 );
 				scene.add( object );
 
+				/*
+				正六面体(方块或立方体，原CubeGeometry)
+				function BoxGeometry( width, height, depth, widthSegments, heightSegments, depthSegments ) {……}
+					width:			方块的宽度，即方块沿X轴方向的长度
+					height:			方块的高度，即方块沿Y轴方向的长度
+					depth:			方块的深度，即方块沿Z轴方向的长度
+					widthSegments:	沿方块的X轴方向，将面分成多少份，默认为1
+					heightSegments:	沿方块的Y轴方向，将面分成多少份，默认为1
+					depthSegments:	沿放开的Z轴方向，将面分成多少份，默认为1
+				*/
 				object = new THREE.Mesh( new THREE.BoxGeometry( 100, 100, 100, 4, 4, 4 ), material );
 				object.position.set( -200, 0, 0 );
 				scene.add( object );
 
+				/*
+				圆
+				function CircleGeometry( radius, segments, thetaStart, thetaLength ) {……}
+					radius:			半径
+					segments:		创建圆所用的三角形面的数量，至少3个，默认为8。值越大，创建出的圆越光滑
+					thetaStart:		起始角，默认为0。3点钟方向，逆时针为正
+					thetaLength:	角度，默认为 2*Math.PI
+				*/
 				object = new THREE.Mesh( new THREE.CircleGeometry( 50, 20, 0, Math.PI * 2 ), material );
 				object.position.set( 0, 0, 0 );
 				scene.add( object );
 
+				/*
+				圆环
+				RingGeometry(innerRadius, outerRadius, thetaSegments, phiSegments, thetaStart, thetaLength)
+				innerRadius:		内圆半径，默认为0。但是当设置为0时，并不能正常工作。
+				outerRadius:		外圆半径，默认为50
+				thetaSegments:		圆环的分片数，最小3个，默认为8。值越大，创建出的圆越光滑
+				phiSegments:		圆环管道部分的分片数，最小为1，默认为8。
+				thetaStart:			起始角，默认为0。3点钟方向，逆时针为正
+				thetaLength:		角度，默认为 2*Math.PI
+				*/
 				object = new THREE.Mesh( new THREE.RingGeometry( 10, 50, 20, 5, 0, Math.PI * 2 ), material );
 				object.position.set( 200, 0, 0 );
 				scene.add( object );
 
+				/*
+				圆柱体
+				function CylinderGeometry( radiusTop, radiusBottom, height, radiusSegments, heightSegments, openEnded, thetaStart, thetaLength ) {……}
+					radiusTop:		顶部圆的半径
+					radiusBottom:	底部圆的半径
+					height:			圆柱体的高度
+					radiusSegments:	圆的分段数
+					heightSegments: 高的分段数
+					openEnded:		圆柱两端是否开放，及是否绘制顶和底
+					thetaStart:		起始弧度
+					thetaLength:	绘制弧度
+				*/
 				object = new THREE.Mesh( new THREE.CylinderGeometry( 25, 75, 100, 40, 5 ), material );
 				object.position.set( 400, 0, 0 );
 				scene.add( object );
 
-				//
-
 				var points = [];
 
 				for ( var i = 0; i < 50; i ++ ) {
-
 					points.push( new THREE.Vector2( Math.sin( i * 0.2 ) * Math.sin( i * 0.1 ) * 15 + 50, ( i - 5 ) * 2 ) );
-
 				}
 
+				/*
+				通过截面顶点数组(points)创建旋转几何体
+				function LatheGeometry( points, segments, phiStart, phiLength ) {……}
+					points:			截面顶点
+					segments:		对圆周长的分段数
+					phiStart:		起始经度
+					phiLength:		旋转过的弧度
+				*/
 				object = new THREE.Mesh( new THREE.LatheGeometry( points, 20 ), material );
 				object.position.set( -400, 0, -200 );
 				scene.add( object );
 
+				/*
+				甜甜圈
+				function TorusGeometry( radius, tube, radialSegments, tubularSegments, arc ) {……}
+					radius:			圆环的半径
+					tube:			圆环管道的半径
+					radialSegments:	圆环的分段数
+					tubularSegments:管道圆的分段数
+					arc:			绘制多少弧度的圆环
+				*/
 				object = new THREE.Mesh( new THREE.TorusGeometry( 50, 20, 20, 20 ), material );
 				object.position.set( -200, 0, -200 );
 				scene.add( object );
 
+				/*
+				环面纽结
+				function TorusKnotGeometry( radius, tube, radialSegments, tubularSegments, p, q, heightScale ) {……}
+					radius:			圆环的半径
+					tube:			圆环管道的半径
+					radialSegments:	圆环的分段数
+					tubularSegments:管道圆的分段数
+					p:				该结绕其轴多久旋转一次，默认为2
+					q:				定义该结绕其内部旋转多少次，默认为3
+					heightScale:	拉伸环面扭结，默认为1	
+				*/
 				object = new THREE.Mesh( new THREE.TorusKnotGeometry( 50, 10, 50, 20 ), material );
 				object.position.set( 0, 0, -200 );
 				scene.add( object );
 
+				//坐标轴(length)
 				object = new THREE.AxisHelper( 50 );
 				object.position.set( 200, 0, -200 );
 				scene.add( object );
-
+				
+				/*
+				箭头
+				ArrowHelper(dir, origin, length, hex, headLength, headWidth )
+					dir:			箭头的方向，它必须是一个单位向量
+					origin:			箭头的起始点
+					length:			箭头的长度，默认为1
+					hex:			十六进制的颜色，默认为黄色(0xffff00)
+					headLength:		箭头的长度，默认为0.2 * length.
+					headWidth:		箭头的宽度，默认为0.2 * headLength. 
+				*/
 				object = new THREE.ArrowHelper( new THREE.Vector3( 0, 1, 0 ), new THREE.Vector3( 0, 0, 0 ), 50 );
 				object.position.set( 400, 0, -200 );
 				scene.add( object );
 
-				//
-
+				//antialias(是否抗锯齿)，默认为false
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				//设置屏幕像素比，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
 				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
-
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
 				container.appendChild( renderer.domElement );
 
+				//左上角的统计信息(FPS，渲染时间，chrome内存使用率)
 				stats = new Stats();
+				//这里注意，统计插件的dom元素是"dom"，而不是domElement
 				container.appendChild( stats.dom );
 
-				//
-
 				window.addEventListener( 'resize', onWindowResize, false );
-
 			}
 
 			function onWindowResize() {
-
+				//重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
 				camera.aspect = window.innerWidth / window.innerHeight;
+				//更新相机的投影矩阵
 				camera.updateProjectionMatrix();
 
+				//重新设置渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
-
 			}
 
-			//
-
 			function animate() {
-
 				requestAnimationFrame( animate );
 
 				render();
+				//这里可以在render前后使用stats.begin和stats.end，也可以在每次渲染的时候调用一次stats.update
 				stats.update();
-
 			}
 
 			function render() {
-
+				//Date.now()获取时间戳(单位:毫秒)
 				var timer = Date.now() * 0.0001;
 
 				camera.position.x = Math.cos( timer ) * 800;
 				camera.position.z = Math.sin( timer ) * 800;
 
+				//相机注视着场景中央
 				camera.lookAt( scene.position );
 
 				for ( var i = 0, l = scene.children.length; i < l; i ++ ) {
-
 					var object = scene.children[ i ];
 
 					object.rotation.x = timer * 5;
 					object.rotation.y = timer * 2.5;
-
 				}
-
 				renderer.render( scene, camera );
-
 			}
-
 		</script>
-
 	</body>
 </html>

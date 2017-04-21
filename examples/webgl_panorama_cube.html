@@ -137,12 +137,22 @@
 			{ 0, 0, 1, 0 }
 			{ 0, 0, 0, 1 }
 			
-			mesh.applyMatrix之后的值为 =》
-			{ x, 0*xyz, 0*xyz,  0*xyz }
-			{ 0, y, 	0, 		0 	  }
-			{ 0, 0, 	z, 		0 	  }
-			{ 0, 0, 	0, 		1	  }
+			mesh.applyMatrix之后，mesh.matrix的值为 =》
+			{ x, 0*xy, 	0*yz,  	0*xyz }
+			{ 0, y, 	0, 		0	}
+			{ 0, 0*x, 	z, 		0	}
+			{ 0, 0, 	0, 		1	}
 			xyz表示相乘之后的符号位，负号会改变原先的material中的side参数
+			
+			原始法向量normalMatrix为 =》
+			{  1,   0, 	  -0	 }
+			{ -0,   1, 	   6.123 }
+			{  0,  -6.123, 1	 }
+			
+			mesh.applyMatrix之后，mesh.normalMatrix的值为 =》
+			{  x,   	 0*x*z,	  -0*x	 	}
+			{ -0*xy,   	 y, 	   6.123*y 	}
+			{  0*x*y*z, -6.123*z,  1*z		}
 				
 			Error: WebGL: texImage2D: Incurred CPU-side conversion, which is very slow.
 			Error: WebGL: texImage2D: Chosen format/type incurred an expensive reformat 0x1908/0x1401
@@ -154,6 +164,8 @@
 			通过一个指定的参数乘以当前矩阵，这是非常慢的，因为它会尝试计算逆变换，所以如果可能的话尽量避免使用它
 			*/
 			skyBox.applyMatrix( new THREE.Matrix4().makeScale( 1, 1, -1 ) );
+			console.log(skyBox.matrix);
+			console.log(skyBox.normalMatrix);
 			scene.add( skyBox );
 
 			window.addEventListener( 'resize', onWindowResize, false );
@@ -169,6 +181,7 @@
 
 			var imageObj = new Image();
 
+			//img标签的onload事件在图片加载完成后立即执行，这时才能取到图片的信息
 			imageObj.onload = function() {
 
 				var canvas, context;
@@ -179,8 +192,25 @@
 					context = canvas.getContext( '2d' );
 					canvas.height = tileWidth;
 					canvas.width = tileWidth;
+					/*
+					在画布上绘制图像
+					context.drawImage(img,sx,sy,swidth,sheight,x,y,width,height);
+						img: 规定要使用的图像、画布或视频。
+						sx: 开始剪切的X坐标位置。
+						sy: 开始剪切的Y坐标位置。
+						swidth: 被剪切图像的宽度。
+						sheight: 被剪切图像的高度。
+						x: 在画布上放置图像的X坐标位置。
+						y: 在画布上放置图像的Y坐标位置。
+						width: 要使用的图像的宽度(伸展或缩小图像)
+						height: 要使用的图像的高度(伸展或缩小图像)
+					*/
 					context.drawImage( imageObj, tileWidth * i, 0, tileWidth, tileWidth, 0, 0, tileWidth, tileWidth );
 					textures[ i ].image = canvas
+					/*
+					第一次就把需要绘制的物体(Geometry)的顶点数据传输到显存中，并且缓存这个buffer到geometry.__webglVertexBuffer，
+					之后每次绘制的时候都会判断Geometry的verticesNeedUpdate属性，如果不需要更新就直接使用现在的缓存
+					*/
 					textures[ i ].needsUpdate = true;
 				}
 			};
