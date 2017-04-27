@@ -16,11 +16,28 @@
 
 			#info {
 				position: absolute;
-				top: 0px; width: 100%;
+				top: 0px; 
+				width: 100%;
 				padding: 5px;
 				text-align: center;
 			}
+			
+			#status {
+				position: absolute;
+				top: 25px;
+				width: 100%;
+				text-align: center;
+				color: purple;
+				font-size: 18px;
+				font-weight: bold;
+			}
 
+			/*
+			未访问		a:link    {color:blue;}
+			已访问		a:visited {color:blue;}
+			鼠标悬停	a:hover   {color:red;}
+			鼠标按下	a:active  {color:yellow;}
+			*/
 			a {
 				color: #0080ff;
 				text-decoration: none;
@@ -30,6 +47,11 @@
 				color: #f00;
 			}
 
+			/*
+			任意浏览器的默认字体高都是16px。所有未经调整的浏览器都符合: 1em=16px。那么12px=0.75em,10px=0.625em。
+			为了简化font-size的换算，需要在css中的body选择器中声明 font-size=62.5%，这就使em值变为 16px*62.5%=10px, 这样12px=1.2em, 10px=1em, 也就是说只需要将你的原来的px数值除以10，然后换上em作为单位就行了。
+			em会继承父级元素的字体大小。
+			*/
 			#footer { width: 100%; margin: 2em auto; text-align: center; position: absolute; bottom: 0 }
 			strong { color: red }
 		</style>
@@ -41,32 +63,50 @@
 			<a href="http://threejs.org" target="_blank">three.js</a> - webgl hemisphere light example -
 			flamingo by <a href="http://mirada.com/">mirada</a> from <a href="http://ro.me">rome</a><br/>
 		</div>
+		<div id="status">
+		</div>
 		<div id="footer">
 			press <strong>h</strong> to toggle hemisphere light, <strong>d</strong> to toggle directional light
 		</div>
 
 		<script src="../build/three.js"></script>
-
+		<!--
+		检测支持(canvas，webgl，workers，fileApi)
+		-->
 		<script src="js/Detector.js"></script>
+		
+		<!--
+		统计插件(FPS，渲染时间，chrome内存使用率)，min表示js代码经过压缩
+		-->
 		<script src="js/libs/stats.min.js"></script>
 
+		<!--
+		GLSL顶点着色器
+		-->
 		<script type="x-shader/x-vertex" id="vertexShader">
-
+			/*
+			varying: 顶点着色器的输出。例如颜色或者纹理坐标，(插值后的数据)作为片段着色器的只读输入数据。
+			必须是全局范围声明的全局变量。可以是浮点数类型的标量，向量，矩阵。不能是数组或者结构体。
+			*/
 			varying vec3 vWorldPosition;
 
 			void main() {
-
 				vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
 				vWorldPosition = worldPosition.xyz;
-
+				//gl_Position: 输出属性-变换后的顶点的位置，用于后面的固定的裁剪等操作。所有的顶点着色器都必须写这个值。
 				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-
 			}
-
 		</script>
 
+		<!--
+		GLSL片元着色器
+		-->
 		<script type="x-shader/x-fragment" id="fragmentShader">
-
+			/*
+			一致变量。在着色器执行期间一致变量的值是不变的。
+			与const常量不同的是，这个值在编译时期是未知的是由着色器外部初始化的。
+			一致变量在顶点着色器和片段着色器之间是共享的。它也只能在全局范围进行声明。
+			*/
 			uniform vec3 topColor;
 			uniform vec3 bottomColor;
 			uniform float offset;
@@ -75,37 +115,52 @@
 			varying vec3 vWorldPosition;
 
 			void main() {
-
 				float h = normalize( vWorldPosition + offset ).y;
+				/*
+				gl_FragColor: 输出的颜色用于随后的像素操作
+				mix(color1, color2, r)是将color1和color2 两种颜色，按照bg = color1*(1-r)+r*color2的方式混合
+				*/
 				gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
-
 			}
-
 		</script>
 
 		<script>
-
+			//如果不支持webgl，则会在当前的父布局上添加一个不支持的提示信息DIV
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 			var camera, scene, renderer, dirLight, hemiLight;
 			var mixers = [];
 			var stats;
 
+			//three.js定义的一种计时器，内部也是使用Date.now()来进行计时的
 			var clock = new THREE.Clock();
 
 			init();
 			animate();
 
 			function init() {
-
 				var container = document.getElementById( 'container' );
 
+				/*
+				透视相机
+				PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 5000 );
 				camera.position.set( 0, 0, 250 );
 
 				scene = new THREE.Scene();
 
+				//添加雾化效果
+				
+				//设置雾化浓度在near和far浓度渐变
 				scene.fog = new THREE.Fog( 0xffffff, 1, 5000 );
+				//设置场景中统一的雾化浓度
+				//scene.fog = new THREE.FogExp2(0xffffff, 0.015);
+				//设置雾的颜色，色相(Hue)、饱和度(Siguation)、明度(Lightness)
 				scene.fog.color.setHSL( 0.6, 0, 1 );
 
 				// LIGHTS
@@ -116,8 +171,7 @@
 				hemiLight.position.set( 0, 500, 0 );
 				scene.add( hemiLight );
 
-				//
-
+				//平行光
 				dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
 				dirLight.color.setHSL( 0.1, 1, 0.95 );
 				dirLight.position.set( -1, 1.75, 1 );
@@ -216,65 +270,53 @@
 				stats = new Stats();
 				container.appendChild( stats.dom );
 
-				//
-
 				window.addEventListener( 'resize', onWindowResize, false );
 				document.addEventListener( 'keydown', onKeyDown, false );
 
 			}
 
 			function onWindowResize() {
-
 				camera.aspect = window.innerWidth / window.innerHeight;
 				camera.updateProjectionMatrix();
 
 				renderer.setSize( window.innerWidth, window.innerHeight );
-
 			}
 
 			function onKeyDown ( event ) {
-
+				//keyCode是字母和数字键的键码值
 				switch ( event.keyCode ) {
-
 					case 72: // h
-
-					hemiLight.visible = !hemiLight.visible;
-					break;
-
+						hemiLight.visible = !hemiLight.visible;
+						resetStatus();
+						break;
 					case 68: // d
-
-					dirLight.visible = !dirLight.visible;
-					break;
-
+						dirLight.visible = !dirLight.visible;
+						resetStatus();
+						break;
 				}
-
 			}
 
-			//
-
 			function animate() {
-
 				requestAnimationFrame( animate );
 
 				render();
+				//这里可以在render前后使用stats.begin和stats.end，也可以在每次渲染的时候调用一次stats.update
 				stats.update();
-
 			}
 
 			function render() {
-
+				//获取两次getDelta()的时间差，单位:秒
 				var delta = clock.getDelta();
 
 				for ( var i = 0; i < mixers.length; i ++ ) {
-
 					mixers[ i ].update( delta );
-
 				}
-
+				
 				renderer.render( scene, camera );
-
 			}
-
+			function resetStatus() {
+				document.getElementById("status").innerHTML = "hemiLight.visible = " + hemiLight.visible + ", dirLight.visible = " + dirLight.visible;
+			}
 		</script>
 	</body>
 </html>

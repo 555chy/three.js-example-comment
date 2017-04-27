@@ -19,16 +19,66 @@
 - [canvas_particles_random.html](examples/canvas_particles_random.html)
 - [canvas_lines.html](examples/canvas_lines.html)
 - [canvas_camera_orthographic.html](examples/canvas_camera_orthographic.html)
+- [canvas_camera_orthographic2.html](examples/canvas_camera_orthographic2.html)
 - [webgl_panorama_cube.html](examples/webgl_panorama_cube.html)
 - [webgl_materials_grass.html](examples/webgl_materials_grass.html)
-- [webgl_geometries.html](examples/webgl_geometries.html)
+- [webgl_geometries.html](examples/webgl_geometries. html)
+
+- [CombinedCamera.js](examples/js/cameras/CombinedCamera.js)
 
 ## 当前批阅项
-- [canvas_camera_orthographic2.html](examples/canvas_camera_orthographic2.html)
+- [webgl_lights_hemisphere.html](examples/webgl_lights_hemisphere.html)
 
 ***
 
 ## 知识点
+
+### 光源
+| Name | 名字 | 描述 |
+| :--- | :--- | :--- |
+| AmbientLight		| 环境光		| 这是一种基础光源，它的颜色会添加到整个场景和所有对象的当前颜色上 |
+| PointLight		| 点光源		| 空间中的一点，朝所有方向发射光线 |
+| SpotLight			| 聚光灯光源	| 这种光源有聚光效果，类似台灯、天花板上的吊灯、或者手电筒 |
+| DirectionLight	| 方向光		| 也称作无限光，这种光源发出的光线可以看作是平行的，例如太阳光 |
+| HemisphereLight	| 半球光		| 这是一种特殊的光源，可以用来创建更加自然的室外光线，模拟反光面和光线微弱的天空 |
+| AreaLight			| 面光源		| 使用这种光源可以指定散发光线的平面，而不是空间中的一点 |
+| LensFlare			| 镜头眩光		| 这不是一种光源，而是通过LensFlare为场景中的光源添加眩光效果 |
+
+### 几何体
+| Name | 名字 |
+| :--- | :--- |
+| PlaneGeometry			| 平面 |
+| CircleGeometry		| 圆形 |
+| ShapeGeometry			| 塑形 |
+| CubeGeometry			| 立方体 |
+| SphereGeometry		| 球体 |
+| CylinderGeometry		| 圆柱 |
+| TorusGeometry			| 圆环 |
+| TorusKnotGeometry		| 环面纽结 |
+| PolyhedronGeometry	| 多面体 |
+| IcosahedronGeometry	| 二十面体 |
+| OctahedronGeometry	| 八面体 |
+| TetraHedronGeometry	| 四面体 |
+| ConvexGeometry		| 凸面体 |
+| LatheGeometry			| 扫描面 |
+| ExtrudeGeometry		| 拉伸几何 |
+| TubeGeometry			| 管状体 |
+| ParametricGeometry	| 参数几何体 |
+| TextGeometry			| 文本几何体 |
+
+### 材质
+| Name | 名字 | 描述 |
+| :--- | :--- | :--- |
+| MeshBasicMaterial		| 基础材质，可以用它赋予几何体一种简单的颜色，或者显示几何体的线框 |
+| MeshDepthMaterial		| 根据网格到相机的距离，这种材质决定如何给网格染色 |
+| MeshNormalMaterial	| 这是一种简单的材质，根据物体表面的法向量计算颜色 |
+| MeshFaceMaterial		| 这是一个容器，可以在这个容器里为物体的各个表面指定不同的颜色 |
+| MeshLambertMaterial	| 这种材质会考虑光照的影响，可以用来创建颜色暗淡的、不光亮的物体 |
+| MeshPhongMaterial		| 这种材质也会考虑光照的影响，而且可以用来创建光亮的物体 |
+| ShaderMaterial		| 这种材允许使用自定义的着色器程序，直接控制顶点的放置方式，以及像素的着色方式 |
+| LineBasicMaterial		| 这种材质可以用于THREE.Line(直线)几何体，从而创建着色的直线 }
+| LineDashedMaterial	| 这种材质跟直线基础材质一样，不过可以用来创建出一种虚线效果 |
+
 ### WebGLRenderer、CanvasRenderer、SoftwareRenderer的区别
 1. WebGLRenderer: The WebGL renderer displays your beautifully crafted scenes using WebGL.
 <br>WebGL渲染器使用WebGL展示制作的场景。
@@ -108,14 +158,21 @@ Multiplies the current matrix by the one specified through the parameters.
 
 ***
 
+## 我的疑惑
+### [CombinedCamera.js](examples/js/cameras/CombinedCamera.html)中的setLens函数和aspect为什么有关
+
 ## 相关插件
 | 插件 | 功能 |
 | :--- | :--- |
-| [three.js](build/three.js) 										| JavaScript编写的WebGL第三方库，封装了大部分常用的3D显示功能 |
+| [three.js](build/three.js)										| JavaScript编写的WebGL第三方库，封装了大部分常用的3D显示功能 |
+|||
 | [Detector.js](examples/js/Detector.js)							| 检测支持(canvas，webgl，workers，fileApi) |
+| [UVsDebug.js](examples/js/utils/UVsDebug.js)						| 通过给定的几何形状，在Canvas中画出其UV纹理贴图 |
+|||
 | [stats.min.js](examples/js/libs/stats.min.js) 					| 统计插件(FPS，渲染时间，chrome内存使用率，而且支持自定义) |
 | [dat.gui.min.js](examples/js/libs/dat.gui.min.js)					| 参数控制器，可以向场景中添加控制条，随时调整参数 |
 |||
+| [CombinedCamera.js](examples/js/cameras/CombinedCamera.js)		| 可以在透视和正交相机上切换，默认为透视相机 |
 | [Projector.js](examples/js/renderers/Projector.js)				| 将三维的场景投影到二维 |
 | [CanvasRenderer.js](examples/js/renderers/CanvasRenderer.js)		| Canvas 2D Context API 进行渲染 |
 | [SoftwareRenderer.js](examples/js/renderers/SoftwareRenderer.js)	| 不依赖GPU进行渲染 |

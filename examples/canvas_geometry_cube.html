@@ -96,7 +96,7 @@
                 */
                 var geometry = new THREE.BoxGeometry( 200, 200, 200 );
  
-                //每个三角形算一个面，所以一个正六面体共有12个三角形的面。先左上三角，后右下三角，默认是THREE.NoColors(白色)
+                //每个三角形算一个面，所以一个正六面体共有12个三角形的面(side:THREE.FrontSide)。先左上三角，后右下三角，默认是THREE.NoColors(白色)
                 for ( var i = 0; i < geometry.faces.length; i += 2 ) {
                     var hex = Math.random() * 0xffffff;
                     //设置几何物体的面的颜色为十六进制

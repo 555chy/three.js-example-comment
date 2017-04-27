@@ -84,7 +84,7 @@
 					//绘制与X轴平行的横线
 					geometry.vertices.push( new THREE.Vector3( - size, 0, i ) );
 					geometry.vertices.push( new THREE.Vector3(   size, 0, i ) );
-					//绘制与ZZ轴平行的竖线
+					//绘制与Z轴平行的竖线
 					geometry.vertices.push( new THREE.Vector3( i, 0, - size ) );
 					geometry.vertices.push( new THREE.Vector3( i, 0,   size ) );
 				}
@@ -104,7 +104,8 @@
 
 				for ( var i = 0; i < 100; i ++ ) {
 					var cube = new THREE.Mesh( geometry, material );
-
+					
+					//对Y方向上的高度进行[1,2]的缩放
 					cube.scale.y = Math.floor( Math.random() * 2 + 1 );
 					
 					//cube.position为立方体的中心
@@ -117,7 +118,6 @@
 				}
 
 				// Lights
-
 				//添加环境光，提供的是在不同位置和方向上强度都相同的光源，相当于光照模型中各物体之间的反射光，因此通常用来表现光强中非常弱的那部分光
 				var ambientLight = new THREE.AmbientLight( Math.random() * 0x10 );
 				scene.add( ambientLight );
@@ -146,7 +146,7 @@
 				renderer.setPixelRatio( window.devicePixelRatio );
 				//设置待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
-				 //将渲染器的DOM元素(即Canvas)添加到HTML中
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
 				container.appendChild( renderer.domElement );
 
 				//统计插件(FPS，渲染时间，chrome内存使用率)
@@ -164,7 +164,7 @@
 				camera.top = window.innerHeight / 2;
 				camera.bottom = window.innerHeight / - 2;
 
-				//更新相机的投影矩阵
+				//更新透视相机的投影矩阵
 				camera.updateProjectionMatrix();
 
 				//重新设置渲染场景的大小
