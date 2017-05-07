@@ -87,7 +87,7 @@ Canvas渲染器不使用WebGL展示制作的场景，而使用稍微慢一点的
 3. SoftwareRenderer: The SoftwareRenderer is a drop-in renderer for Three.js that can be used on the server and the client, if you need to be GPU independent.
 <br>Software渲染器对于Three.js来说是一种退化的渲染器，在不依赖GPU的情况下，它既可以使用在服务器上也可以使用在客户端上。
 
-WebGL、Canvas、Software这三种渲染器理论上可以相互替换。但是WebGL需要环境光否则是黑色的，其它两个即使没有环境光也能渲染出材质。
+WebGL、Canvas、Software这三种渲染器理论上可以相互替换(粒子Particles除外)。但是WebGL需要环境光否则是黑色的，其它两个即使没有环境光也能渲染出材质。
 <br>另外，所使用的图片数据的大小必须是2的阶乘，横竖的像素长度大小必须是32x32，128x128等2的阶乘的形式。
 
 在渲染速度方面：WebGL > Canvas > Software。
