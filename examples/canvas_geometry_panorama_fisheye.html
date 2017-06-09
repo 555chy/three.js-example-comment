@@ -71,14 +71,20 @@
 				context.fillRect( 0, 0, texture_placeholder.width, texture_placeholder.height );
 
 				var materials = [
-
+/*
 					loadTexture( 'textures/cube/skybox/px.jpg' ), // right
 					loadTexture( 'textures/cube/skybox/nx.jpg' ), // left
 					loadTexture( 'textures/cube/skybox/py.jpg' ), // top
 					loadTexture( 'textures/cube/skybox/ny.jpg' ), // bottom
 					loadTexture( 'textures/cube/skybox/pz.jpg' ), // back
 					loadTexture( 'textures/cube/skybox/nz.jpg' ) // front
-
+*/
+					loadTexture( 'textures/cube/skybox/test-px.jpg' ), // right
+					loadTexture( 'textures/cube/skybox/test-nx.jpg' ), // left
+					loadTexture( 'textures/cube/skybox/test-py.jpg' ), // top
+					loadTexture( 'textures/cube/skybox/test-ny.jpg' ), // bottom
+					loadTexture( 'textures/cube/skybox/test-pz.jpg' ), // back
+					loadTexture( 'textures/cube/skybox/test-nz.jpg' )  // front
 				];
 
 				mesh = new THREE.Mesh( new THREE.BoxGeometry( 300, 300, 300, 7, 7, 7 ), new THREE.MultiMaterial( materials ) );

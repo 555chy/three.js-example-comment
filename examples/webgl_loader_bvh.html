@@ -42,6 +42,12 @@
 			init();
 			animate();
 
+			/*
+			BVH是BioVision等设备对人体运动进行捕获后产生文件格式的文件扩展名
+			BVH文件包含角色的骨骼和肢体关节旋转数据。
+			BVH 是一种通用的人体特征动画文件格式,，广泛地被当今流行的各种动画制作软件支持。
+			通常可从记录人类行为运动的运动捕获硬件获得。
+			*/
 			var loader = new THREE.BVHLoader();
 			loader.load( "models/bvh/pirouette.bvh", function( result ) {
 

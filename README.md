@@ -184,6 +184,10 @@ Multiplies the current matrix by the one specified through the parameters.
 
 ## [View Examples](examples/index.html)
 
+**相关博客推荐**
+- [three.js 源码注释](http://blog.csdn.net/omni360/article/details/38842291)
+- [three.js 实例讲解](http://www.cnblogs.com/amy2011/p/6358527.html)
+
 **Note:** 如果GitHub的当前页没有index.html的话，GitHub会按设置好的模板加载README.md
 
 

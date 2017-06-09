@@ -34,6 +34,12 @@
 
 		<script src="../build/three.js"></script>
 
+		<!--
+		想要使用CanvasRenderer，必须添加如下两个js文件 
+		第一个文件顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
+		THREE.Projector has been moved to /examples/js/renderers/Projector.js. three.js:42883:3
+		TypeError: THREE.RenderableVertex is not a constructor 
+		-->
 		<script src="js/renderers/Projector.js"></script>
 		<script src="js/renderers/CanvasRenderer.js"></script>
 
@@ -58,8 +64,16 @@
 
 				container = document.getElementById( 'container' );
 
+				/*
+				透视相机
+				PerspectiveCamera(fov, aspect, near, far)
+					fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+					aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+					near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+					far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+				*/
 				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1100 );
-
+	
 				scene = new THREE.Scene();
 
 				texture_placeholder = document.createElement( 'canvas' );
@@ -70,14 +84,25 @@
 				context.fillStyle = 'rgb( 200, 200, 200 )';
 				context.fillRect( 0, 0, texture_placeholder.width, texture_placeholder.height );
 
+				/*
+				也可以从地图集中一次性批量提取图片，顺序分别是右左上下后前
+				var textures = getTexturesFromAtlasFile( "textures/cube/sun_temple_stripe.jpg", 6 );
+				*/
 				var materials = [
-
+/*
 					loadTexture( 'textures/cube/skybox/px.jpg' ), // right
 					loadTexture( 'textures/cube/skybox/nx.jpg' ), // left
 					loadTexture( 'textures/cube/skybox/py.jpg' ), // top
 					loadTexture( 'textures/cube/skybox/ny.jpg' ), // bottom
 					loadTexture( 'textures/cube/skybox/pz.jpg' ), // back
 					loadTexture( 'textures/cube/skybox/nz.jpg' )  // front
+*/
+					loadTexture( 'textures/cube/skybox/test-px.jpg' ), // right
+					loadTexture( 'textures/cube/skybox/test-nx.jpg' ), // left
+					loadTexture( 'textures/cube/skybox/test-py.jpg' ), // top
+					loadTexture( 'textures/cube/skybox/test-ny.jpg' ), // bottom
+					loadTexture( 'textures/cube/skybox/test-pz.jpg' ), // back
+					loadTexture( 'textures/cube/skybox/test-nz.jpg' )  // front
 
 				];
 
@@ -89,6 +114,8 @@
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				container.appendChild( renderer.domElement );
+				
+				renderer.setFaceCulling(THREE.CullFaceBack,THREE.FrontFaceDirectionCW);
 
 				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
@@ -98,19 +125,17 @@
 				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 				document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
-				//
-
 				window.addEventListener( 'resize', onWindowResize, false );
 
 			}
 
 			function onWindowResize() {
-
+				//更新透视相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
 				camera.aspect = window.innerWidth / window.innerHeight;
+				//更新相机的投影矩阵
 				camera.updateProjectionMatrix();
-
+				//重新设置渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
-
 			}
 
 			function loadTexture( path ) {
