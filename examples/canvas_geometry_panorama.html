@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js canvas - panorama demo</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -10,7 +14,6 @@
 				margin: 0px;
 				overflow: hidden;
 			}
-
 			#info {
 				position: absolute;
 				top: 0px; width: 100%;
@@ -21,14 +24,12 @@
 				font-weight: bold;
 				text-align:center;
 			}
-
 			a {
 				color: #ffffff;
 			}
 		</style>
 	</head>
 	<body>
-
 		<div id="container"></div>
 		<div id="info"><a href="http://threejs.org" target="_blank">three.js</a> - panorama demo. cubemap by <a href="http://www.zfight.com/" target="_blank">Jochum Skoglund</a>.</div>
 
@@ -36,7 +37,7 @@
 
 		<!--
 		想要使用CanvasRenderer，必须添加如下两个js文件 
-		第一个文件顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
+		Projector.js顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
 		THREE.Projector has been moved to /examples/js/renderers/Projector.js. three.js:42883:3
 		TypeError: THREE.RenderableVertex is not a constructor 
 		-->
@@ -44,24 +45,27 @@
 		<script src="js/renderers/CanvasRenderer.js"></script>
 
 		<script>
-
 			var camera, scene, renderer;
 
-			var texture_placeholder,
+			//这里根本不需要canvas
+			//var texture_placeholder,
+			//标记是否存在用户交互
 			isUserInteracting = false,
+			//鼠标按下时的x，y坐标
 			onMouseDownMouseX = 0, onMouseDownMouseY = 0,
+			//longtitude 经度
 			lon = 90, onMouseDownLon = 0,
+			//latitude 维度
 			lat = 0, onMouseDownLat = 0,
 			phi = 0, theta = 0,
+			//相机注视方向
 			target = new THREE.Vector3();
 
 			init();
 			animate();
 
 			function init() {
-
 				var container, mesh;
-
 				container = document.getElementById( 'container' );
 
 				/*
@@ -73,20 +77,23 @@
 					far(远面)：定义相机可以从它所处的位置看多远。默认值1000
 				*/
 				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1100 );
-	
+				
 				scene = new THREE.Scene();
 
+				/*
 				texture_placeholder = document.createElement( 'canvas' );
 				texture_placeholder.width = 128;
 				texture_placeholder.height = 128;
-
 				var context = texture_placeholder.getContext( '2d' );
 				context.fillStyle = 'rgb( 200, 200, 200 )';
 				context.fillRect( 0, 0, texture_placeholder.width, texture_placeholder.height );
+				*/
 
 				/*
 				也可以从地图集中一次性批量提取图片，顺序分别是右左上下后前
 				var textures = getTexturesFromAtlasFile( "textures/cube/sun_temple_stripe.jpg", 6 );
+				
+				如果下面的MultiMaterial中某个material缺失的话，会显示黑色
 				*/
 				var materials = [
 /*
@@ -106,22 +113,41 @@
 
 				];
 
+				//这里将立方体的每条边分成了7份，换成1份也是可以的，没影响
 				mesh = new THREE.Mesh( new THREE.BoxGeometry( 300, 300, 300, 7, 7, 7 ), new THREE.MultiMaterial( materials ) );
+				//由于默认情况只渲染物体外部，将某一坐标置反，可以达到渲染内部的效果
+				//mesh.applyMatrix( new THREE.Matrix4().makeScale( 1, 1, -1 ) );
 				mesh.scale.x = - 1;
+				
+				//如果不设置的话，网格位置默认为Vector3{x:0,y:0,z:0}
 				scene.add( mesh );
 
 				renderer = new THREE.CanvasRenderer();
+				//window.devicePixelRatio是设备上物理像素和设备独立像素(device-independent pixels (dips))的比例
 				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
 				container.appendChild( renderer.domElement );
+				/*
+				cullFace 剔除模式
+					CullFaceNone = 0;
+					CullFaceBack = 1;
+					CullFaceFront = 2;
+					CullFaceFrontBack = 3;
 				
-				renderer.setFaceCulling(THREE.CullFaceBack,THREE.FrontFaceDirectionCW);
+				frontFaceDirection 剔除方向
+					FrontFaceDirectionCCCW 表示窗口坐标上投影多边形的顶点顺序为逆时针方向的表面为正面。
+					FrontFaceDirectionCW 表示顶点顺序为顺时针方向的表面为正面。
+				*/
+				renderer.setFaceCulling(THREE.CullFaceBack, THREE.FrontFaceDirectionCW);
 
 				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 				document.addEventListener( 'mouseup', onDocumentMouseUp, false );
 				document.addEventListener( 'wheel', onDocumentMouseWheel, false );
 
+				//注意：触摸事件比鼠标事件少了一个touchend，因为暂不存在不放开手指的情况
 				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 				document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
@@ -139,120 +165,104 @@
 			}
 
 			function loadTexture( path ) {
-
-				var texture = new THREE.Texture( texture_placeholder );
+				//由于不是从canvas中获取图片，用canvas来初始化就显得很没道理
+				//var texture = new THREE.Texture( texture_placeholder );
+				var texture = new THREE.Texture();
 				var material = new THREE.MeshBasicMaterial( { map: texture, overdraw: 0.5 } );
-
 				var image = new Image();
 				image.onload = function () {
-
 					texture.image = this;
+					//由于图片是异步加载的，一旦检测到needsUpdate=true，three.js就会使用_gl.texImage2D将空的纹理数据传输到显存中，然后就将这个标志位设成false, 之后再使用该图片的时候就不需要重新加载显存数据了
 					texture.needsUpdate = true;
-
 				};
 				image.src = path;
-
 				return material;
-
 			}
 
 			function onDocumentMouseDown( event ) {
-
+				//通知 Web 浏览器不要执行与事件关联的默认动作
 				event.preventDefault();
-
 				isUserInteracting = true;
-
+				
+				//clientX和clientY 表示事件触发时，相对于当前窗口的坐标
 				onPointerDownPointerX = event.clientX;
 				onPointerDownPointerY = event.clientY;
 
 				onPointerDownLon = lon;
 				onPointerDownLat = lat;
-
 			}
 
 			function onDocumentMouseMove( event ) {
-
 				if ( isUserInteracting === true ) {
-
+					//鼠标拖动的方向与相机注视的方向相反，与TrackballControls插件效果相近
 					lon = ( onPointerDownPointerX - event.clientX ) * 0.1 + onPointerDownLon;
 					lat = ( event.clientY - onPointerDownPointerY ) * 0.1 + onPointerDownLat;
-
 				}
-
 			}
 
 			function onDocumentMouseUp( event ) {
-
 				isUserInteracting = false;
-
 			}
 
 			function onDocumentMouseWheel( event ) {
-
+				//delta可以获取鼠标滚轮的方向和速度。如果delta的值是负的，那么滚轮就是向下滚动，正的就是向上。deltaX, deltaY分别是滚轮滚动的坐标值
 				camera.fov += event.deltaY * 0.05;
+				
+				//这里要设置一个视场范围，过大或过小的视场都会导致显示异常
+				camera.fov = Math.max(10, camera.fov);
+				camera.fov = Math.min(120, camera.fov);
+				
+				//更新相机的投影矩阵
 				camera.updateProjectionMatrix();
-
 			}
 
-
 			function onDocumentTouchStart( event ) {
-
+				//仅支持单指触摸
 				if ( event.touches.length == 1 ) {
-
 					event.preventDefault();
-
 					onPointerDownPointerX = event.touches[ 0 ].pageX;
 					onPointerDownPointerY = event.touches[ 0 ].pageY;
-
 					onPointerDownLon = lon;
 					onPointerDownLat = lat;
-
 				}
-
 			}
 
 			function onDocumentTouchMove( event ) {
-
 				if ( event.touches.length == 1 ) {
-
 					event.preventDefault();
 
 					lon = ( onPointerDownPointerX - event.touches[0].pageX ) * 0.1 + onPointerDownLon;
 					lat = ( event.touches[0].pageY - onPointerDownPointerY ) * 0.1 + onPointerDownLat;
-
 				}
-
 			}
 
 			function animate() {
-
 				requestAnimationFrame( animate );
 				update();
-
 			}
 
 			function update() {
-
+				//没有交互的情况下对改变观察方向
 				if ( isUserInteracting === false ) {
-
 					lon += 0.1;
-
 				}
-
+				//设置仰俯角范围[-85,85]
 				lat = Math.max( - 85, Math.min( 85, lat ) );
+				//THREE.Math.degToRad将角度转换成弧度
 				phi = THREE.Math.degToRad( 90 - lat );
 				theta = THREE.Math.degToRad( lon );
 
-				target.x = 500 * Math.sin( phi ) * Math.cos( theta );
-				target.y = 500 * Math.cos( phi );
-				target.z = 500 * Math.sin( phi ) * Math.sin( theta );
-
+				//相机注视的点是一个半径为r的球上的一点，这是一个方向向量
+				var r = 10;
+				target.x = r * Math.sin( phi ) * Math.cos( theta );
+				target.y = r * Math.cos( phi );
+				target.z = r * Math.sin( phi ) * Math.sin( theta );
+				
+				//照相机看着球体上的某个点
 				camera.lookAt( target );
 
 				renderer.render( scene, camera );
-
 			}
-
 		</script>
 	</body>
 </html>

@@ -20,14 +20,19 @@
 - [canvas_lines.html](examples/canvas_lines.html)
 - [canvas_camera_orthographic.html](examples/canvas_camera_orthographic.html)
 - [canvas_camera_orthographic2.html](examples/canvas_camera_orthographic2.html)
-- [webgl_panorama_cube.html](examples/webgl_panorama_cube.html)
 - [webgl_materials_grass.html](examples/webgl_materials_grass.html)
-- [webgl_geometries.html](examples/webgl_geometries. html)
+- [webgl_geometries.html](examples/webgl_geometries.html)
+- [canvas_materials_normal.html](examples/canvas_materials_normal.html)
+- [canvas_materials_reflection.html](examples/canvas_materials_reflection.html)
+- [webgl_panorama_cube.html](examples/webgl_panorama_cube.html)
+- [canvas_geometry_panorama.html](examples/canvas_geometry_panorama.html)
+- [canvas_geometry_panorama_fisheye.html](examples/canvas_geometry_panorama_fisheye.html)
 
 - [CombinedCamera.js](examples/js/cameras/CombinedCamera.js)
 
 ## 当前批阅项
 - [webgl_lights_hemisphere.html](examples/webgl_lights_hemisphere.html)
+
 
 ***
 
@@ -159,7 +164,8 @@ Multiplies the current matrix by the one specified through the parameters.
 ***
 
 ## 我的疑惑
-### [CombinedCamera.js](examples/js/cameras/CombinedCamera.html)中的setLens函数和aspect为什么有关
+### [CombinedCamera.js](examples/js/cameras/CombinedCamera.html)中的setLens函数和aspect为什么有关?
+### [canvas_materials_reflection.js](examples/js/cameras/canvas_materials_reflection.html)中texture.mapping为什么只能用SphericalReflectionMapping，其它碎片噪音哪里来的?
 
 ## 相关插件
 | 插件 | 功能 |
@@ -187,6 +193,7 @@ Multiplies the current matrix by the one specified through the parameters.
 **相关博客推荐**
 - [three.js 源码注释](http://blog.csdn.net/omni360/article/details/38842291)
 - [three.js 实例讲解](http://www.cnblogs.com/amy2011/p/6358527.html)
+- [WebGl 中文网](http://www.hewebgl.com/article/articledir/1)
 
 **Note:** 如果GitHub的当前页没有index.html的话，GitHub会按设置好的模板加载README.md
 

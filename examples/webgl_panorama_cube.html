@@ -63,8 +63,11 @@
 			var container = document.getElementById( 'container' );
 
 			renderer = new THREE.WebGLRenderer();
+			//window.devicePixelRatio是设备上物理像素和设备独立像素(device-independent pixels (dips))的比例。
 			renderer.setPixelRatio( window.devicePixelRatio );
+			//设置渲染场景的大小
 			renderer.setSize( window.innerWidth, window.innerHeight );
+			//将渲染器的DOM元素(即Canvas)添加到HTML中
 			container.appendChild( renderer.domElement );
 
 			scene = new THREE.Scene();
@@ -164,6 +167,12 @@
 			The equivalent function in OpenGL is glMultMatrix(). 
 			
 			通过一个指定的参数乘以当前矩阵，这是非常慢的，因为它会尝试计算逆变换，所以如果可能的话尽量避免使用它
+			
+			由于默认情况只渲染物体外部，将某一坐标置反，可以达到渲染内部的效果
+			
+			skyBox.applyMatrix( new THREE.Matrix4().makeScale( 1, 1, -1 ) );
+			等价于
+			skyBox.scale.z = -1;
 			*/
 			skyBox.applyMatrix( new THREE.Matrix4().makeScale( 1, 1, -1 ) );
 			console.log(skyBox.matrix);
@@ -216,9 +225,7 @@
 					textures[ i ].needsUpdate = true;
 				}
 			};
-
 			imageObj.src = atlasImgUrl;
-
 			return textures;
 		}
 
@@ -234,9 +241,7 @@
 		function animate() {
 			//更新轨道控制器，这里轨道控制器与相机关联，所以也会更新相机的位置和角度。注意这里就不用设置相机的lookAt了
 			controls.update();
-
 			renderer.render( scene, camera );
-
 			requestAnimationFrame( animate );
 		}
 		</script>

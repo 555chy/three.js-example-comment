@@ -43,10 +43,10 @@
 		</div>
 
 		<script src="../build/three.js"></script>
-
+		
 		<!--
 		想要使用CanvasRenderer，必须添加如下两个js文件 
-		第一个文件顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
+		Projector.js顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
 		THREE.Projector has been moved to /examples/js/renderers/Projector.js. three.js:42883:3
 		TypeError: THREE.RenderableVertex is not a constructor 
 		-->
@@ -84,11 +84,22 @@
 				loader = new THREE.JSONLoader();
 				loader.load( 'obj/WaltHeadLo.js', function ( geometry ) {
 
+					//计算geometry.faces[n].vertexNormals[3]，即点法向量，用以后续的反射（注意，它和面法向量faces[n].normal不一样）
 					geometry.computeVertexNormals();
 
 					var envMap = new THREE.TextureLoader().load( 'textures/metal.jpg' );
+					/*
+					exports.UVMapping = UVMapping;													平展-映射
+					exports.CubeReflectionMapping = CubeReflectionMapping;							立方体反射-映射
+					exports.CubeRefractionMapping = CubeRefractionMapping;							立方体折射-映射
+					exports.EquirectangularReflectionMapping = EquirectangularReflectionMapping;	矩形球面反射-映射
+					exports.EquirectangularRefractionMapping = EquirectangularRefractionMapping;	矩形球面折射-映射
+					exports.SphericalReflectionMapping = SphericalReflectionMapping;				球面反射-映射
+					exports.CubeUVReflectionMapping = CubeUVReflectionMapping;						立方体纹理反射-映射
+					exports.CubeUVRefractionMapping = CubeUVRefractionMapping;						立方体纹理折射-映射
+					*/
 					envMap.mapping = THREE.SphericalReflectionMapping;
-
+					
 					mesh = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { envMap: envMap, overdraw: 0.5 } ) );
 					scene.add( mesh );
 
