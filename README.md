@@ -5,28 +5,34 @@
 ***
 
 ## 已完成项
-
-- [webgl_test_memory.html](examples/webgl_test_memory.html)
-- [canvas_geometry_cube.html](examples/canvas_geometry_cube.html)
-- [webgl_geometry_cube.html](examples/webgl_geometry_cube.html)
-- [canvas_geometry_earth.html](examples/canvas_geometry_earth.html)
-- [software_geometry_earth.html](examples/canvas_geometry_earth.html)
 - [canvas_ascii_effect.html](examples/canvas_ascii_effect.html)
-- [misc_uv_tests.html](examples/misc_uv_tests.html)
-- [css3d_sandbox.html](examples/css3d_sandbox.html)
-- [canvas_particles_floor.html](examples/canvas_particles_floor.html)
-- [canvas_geometry_hierarchy.html](examples/canvas_geometry_hierarchy.html)
-- [canvas_particles_random.html](examples/canvas_particles_random.html)
-- [canvas_lines.html](examples/canvas_lines.html)
 - [canvas_camera_orthographic.html](examples/canvas_camera_orthographic.html)
 - [canvas_camera_orthographic2.html](examples/canvas_camera_orthographic2.html)
-- [webgl_materials_grass.html](examples/webgl_materials_grass.html)
-- [webgl_geometries.html](examples/webgl_geometries.html)
-- [canvas_materials_normal.html](examples/canvas_materials_normal.html)
-- [canvas_materials_reflection.html](examples/canvas_materials_reflection.html)
-- [webgl_panorama_cube.html](examples/webgl_panorama_cube.html)
+- [canvas_geometry_cube.html](examples/canvas_geometry_cube.html)
+- [canvas_geometry_earth.html](examples/canvas_geometry_earth.html)
+- [canvas_geometry_hierarchy.html](examples/canvas_geometry_hierarchy.html)
 - [canvas_geometry_panorama.html](examples/canvas_geometry_panorama.html)
 - [canvas_geometry_panorama_fisheye.html](examples/canvas_geometry_panorama_fisheye.html)
+- [canvas_lines.html](examples/canvas_lines.html)
+- [canvas_materials_normal.html](examples/canvas_materials_normal.html)
+- [canvas_materials_reflection.html](examples/canvas_materials_reflection.html)
+- [canvas_particles_floor.html](examples/canvas_particles_floor.html)
+- [canvas_particles_random.html](examples/canvas_particles_random.html)
+
+- [css3d_panorama.html](examples/css3d_panorama.html)
+- [css3d_panorama_deviceorientation.html](examples/css3d_panorama_deviceorientation.html)
+- [css3d_sandbox.html](examples/css3d_sandbox.html)
+- [css3d_youtube.html](examples/css3d_youtube.html)
+
+- [misc_uv_tests.html](examples/misc_uv_tests.html)
+
+- [software_geometry_earth.html](examples/canvas_geometry_earth.html)
+
+- [webgl_geometry_cube.html](examples/webgl_geometry_cube.html)
+- [webgl_geometries.html](examples/webgl_geometries.html)
+- [webgl_materials_grass.html](examples/webgl_materials_grass.html)
+- [webgl_panorama_cube.html](examples/webgl_panorama_cube.html)
+- [webgl_test_memory.html](examples/webgl_test_memory.html)
 
 - [CombinedCamera.js](examples/js/cameras/CombinedCamera.js)
 
@@ -84,6 +90,12 @@
 | LineBasicMaterial		| 这种材质可以用于THREE.Line(直线)几何体，从而创建着色的直线 }
 | LineDashedMaterial	| 这种材质跟直线基础材质一样，不过可以用来创建出一种虚线效果 |
 
+### 渲染器
+- WebGLRenderer
+- CanvasRenderer
+- SoftwareRenderer
+- CSS3DRenderer
+
 ### WebGLRenderer、CanvasRenderer、SoftwareRenderer的区别
 1. WebGLRenderer: The WebGL renderer displays your beautifully crafted scenes using WebGL.
 <br>WebGL渲染器使用WebGL展示制作的场景。
@@ -98,8 +110,8 @@ WebGL、Canvas、Software这三种渲染器理论上可以相互替换(粒子Par
 在渲染速度方面：WebGL > Canvas > Software。
 
 **参考:** 
-- [WebGLRenderer](https://threejs.org/docs/index.html#Reference/Renderers/WebGLRenderer)
-- [CanvasRenderer](https://threejs.org/docs/index.html#Examples/Renderers/CanvasRenderer)
+- [WebGLRenderer](https://threejs.org/docs/index.html#api/renderers/WebGLRenderer)
+- [CanvasRenderer](https://threejs.org/docs/index.html#examples/renderers/CanvasRenderer)
 - [SoftwareRenderer](https://www.npmjs.com/package/three-software-renderer)
 
 **范例:** 
@@ -170,24 +182,27 @@ Multiplies the current matrix by the one specified through the parameters.
 ## 相关插件
 | 插件 | 功能 |
 | :--- | :--- |
-| [three.js](build/three.js)										| JavaScript编写的WebGL第三方库，封装了大部分常用的3D显示功能 |
+| [three.js](build/three.js)														| JavaScript编写的WebGL第三方库，封装了大部分常用的3D显示功能 |
 |||
-| [Detector.js](examples/js/Detector.js)							| 检测支持(canvas，webgl，workers，fileApi) |
-| [UVsDebug.js](examples/js/utils/UVsDebug.js)						| 通过给定的几何形状，在Canvas中画出其UV纹理贴图 |
+| [Detector.js](examples/js/Detector.js)											| 检测支持(canvas，webgl，workers，fileApi) |
+| [UVsDebug.js](examples/js/utils/UVsDebug.js)										| 通过给定的几何形状，在Canvas中画出其UV纹理贴图 |
 |||
-| [stats.min.js](examples/js/libs/stats.min.js) 					| 统计插件(FPS，渲染时间，chrome内存使用率，而且支持自定义) |
-| [dat.gui.min.js](examples/js/libs/dat.gui.min.js)					| 参数控制器，可以向场景中添加控制条，随时调整参数 |
+| [stats.min.js](examples/js/libs/stats.min.js) 									| 统计插件(FPS，渲染时间，chrome内存使用率，而且支持自定义) |
+| [dat.gui.min.js](examples/js/libs/dat.gui.min.js)									| 参数控制器，可以向场景中添加控制条，随时调整参数 |
 |||
-| [CombinedCamera.js](examples/js/cameras/CombinedCamera.js)		| 可以在透视和正交相机上切换，默认为透视相机 |
-| [Projector.js](examples/js/renderers/Projector.js)				| 将三维的场景投影到二维 |
-| [CanvasRenderer.js](examples/js/renderers/CanvasRenderer.js)		| Canvas 2D Context API 进行渲染 |
-| [SoftwareRenderer.js](examples/js/renderers/SoftwareRenderer.js)	| 不依赖GPU进行渲染 |
+| [CombinedCamera.js](examples/js/cameras/CombinedCamera.js)						| 可以在透视和正交相机上切换，默认为透视相机 |
+| [Projector.js](examples/js/renderers/Projector.js)								| 将三维的场景投影到二维 |
+| [CanvasRenderer.js](examples/js/renderers/CanvasRenderer.js)						| Canvas 2D Context API 进行渲染 |
+| [SoftwareRenderer.js](examples/js/renderers/SoftwareRenderer.js)					| 不依赖GPU进行渲染 |
+| [CSS3DRenderer.js](examples/js/renderers/CSS3DRenderer.js)						| 使用CSS3渲染3D的DOM元素 |
 |||
-| [OrbitControls.js](examples/js/controls/OrbitControls.js)			| 轨道控制，鼠标左键旋转(与鼠标方向相同，用于非触摸屏上)，右键平移，中键缩放；也可以使用键盘控制 |
-| [TrackballControls.js](examples/js/controls/TrackballControls.js)	| 轨迹控制，鼠标左键旋转(与鼠标方向相反，用于触摸屏上)，右键平移，中键缩放；也可以使用键盘控制 |
+| [OrbitControls.js](examples/js/controls/OrbitControls.js)							| 轨道控制，鼠标左键旋转(与鼠标方向相同，用于非触摸屏上)，右键平移，中键缩放；也可以使用键盘控制 |
+| [TrackballControls.js](examples/js/controls/TrackballControls.js)					| 轨迹控制，鼠标左键旋转(与鼠标方向相反，用于触摸屏上)，右键平移，中键缩放；也可以使用键盘控制 |
+| [DeviceOrientationControls.js](examples/js/controls/DeviceOrientationControls.js)	| 设备朝向控制，仅对移动设备有效。根据设备朝向调整被控制元素朝向 |
 |||
 | [AsciiEffect.js](examples/js/effects/AsciiEffect.js) 				| ASCII文本画渲染效果 |
-
+|||
+| [Bird.js](examples/obj/Bird.js) 				| 鸟的形状 |
 ## [View Examples](examples/index.html)
 
 **相关博客推荐**

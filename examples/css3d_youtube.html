@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js css3d - youtube</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			html, body {
@@ -11,7 +15,7 @@
 			}
 			#blocker {
 				position: absolute;
-				/* background-color: rgba(255, 0, 0, 0.5); */
+				background-color: rgba(255, 0, 0, 0.5);
 				top: 0px;
 				left: 0px;
 				width: 100%;
@@ -21,56 +25,77 @@
 	</head>
 	<body>
 		<script src="../build/three.js"></script>
+		<!--
+		轨迹控制，鼠标左键旋转(与鼠标方向相反，用于触摸屏上)，右键平移，中键缩放；也可以使用键盘控制
+		-->
 		<script src="js/controls/TrackballControls.js"></script>
+		<!-- 
+		使用CSS3渲染3D的DOM元素
+		-->
 		<script src="js/renderers/CSS3DRenderer.js"></script>
 
 		<div id="container"></div>
 		<div id="blocker"></div>
 
 		<script>
-
 			var camera, scene, renderer;
 
 			var Element = function ( id, x, y, z, ry ) {
-
+/*
 				var div = document.createElement( 'div' );
 				div.style.width = '480px';
 				div.style.height = '360px';
 				div.style.backgroundColor = '#000';
-
+*/
 				var iframe = document.createElement( 'iframe' );
 				iframe.style.width = '480px';
 				iframe.style.height = '360px';
 				iframe.style.border = '0px';
+				iframe.style.backgroundColor = '#000';
 				iframe.src = [ 'https://www.youtube.com/embed/', id, '?rel=0' ].join( '' );
-				div.appendChild( iframe );
+//				div.appendChild( iframe );
 
-				var object = new THREE.CSS3DObject( div );
+				//var object = new THREE.CSS3DObject( div );
+				//只要是个DOM元素均可，外部嵌套div是非必要的
+				var object = new THREE.CSS3DObject( iframe );
 				object.position.set( x, y, z );
 				object.rotation.y = ry;
-
 				return object;
-
 			};
 
 			init();
 			animate();
 
 			function init() {
-
 				var container = document.getElementById( 'container' );
 
+				/*
+				PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 5000 );
+				/*
+				定义相机的位置，有如下两种方式。如果不设置的话，相机位置为默认的Vector3{x:0,y:0,z:0}
+				camera.position.x = 500;
+				camera.position.x = 350;
+				camera.position.x = 750;
+				*/
 				camera.position.set( 500, 350, 750 );
 
 				scene = new THREE.Scene();
 
 				renderer = new THREE.CSS3DRenderer();
+				//设置待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
-				renderer.domElement.style.position = 'absolute';
-				renderer.domElement.style.top = 0;
+				//将渲染器的DOM元素(即Canvas)可以设置样式
+				//renderer.domElement.style.position = 'absolute';
+				//renderer.domElement.style.top = 0;
 				container.appendChild( renderer.domElement );
 
+				//three.js中的分组，同一个分组中的对象可以一起执行某项操作，不用再进行遍历判断
 				var group = new THREE.Group();
 				group.add( new Element( 'njCDZWTI-xg', 0, 0, 240, 0 ) );
 				group.add( new Element( 'HDh4uK9PvJU', 240, 0, 0, Math.PI / 2 ) );
@@ -78,7 +103,9 @@
 				group.add( new Element( 'nhORZ6Ep_jE', - 240, 0, 0, - Math.PI / 2 ) );
 				scene.add( group );
 
+				//设置鼠标控制的对象为相机
 				controls = new THREE.TrackballControls( camera );
+				//鼠标移动距离转化为控制器旋转角度的比例
 				controls.rotateSpeed = 4;
 
 				window.addEventListener( 'resize', onWindowResize, false );
@@ -86,29 +113,38 @@
 				// Block iframe events when dragging camera
 
 				var blocker = document.getElementById( 'blocker' );
+				//display和visibility的效果一样，即使不显示元素，也会保留其物理空间
 				blocker.style.display = 'none';
-
-				document.addEventListener( 'mousedown', function () { blocker.style.display = ''; } );
-				document.addEventListener( 'mouseup', function () { blocker.style.display = 'none'; } );
+				
+				document.addEventListener( 'mousedown', function () {
+					//style.display = ""；是清除display样式，display将使用默认值（块元素会变成b搜索lock，内联元素会变成inline）
+					blocker.style.display = '';
+					//blocker.style.visibility = "visible";
+				} );
+				document.addEventListener( 'mouseup', function () { 
+					blocker.style.display = 'none';
+					//blocker.style.visibility = "hidden";
+				} );
 
 			}
 
 			function onWindowResize() {
-
+				//重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
 				camera.aspect = window.innerWidth / window.innerHeight;
+				//更新透视相机的投影矩阵
 				camera.updateProjectionMatrix();
+				//重新设置渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
-
 			}
 
 			function animate() {
-
 				requestAnimationFrame( animate );
+				//更新轨迹控制器，这里轨迹控制器与相机关联，所以也会更新相机的位置和角度。因此这里就不用设置相机的lookAt了。如果鼠标移动的话，相机会绕着原点旋转
 				controls.update();
+				//console.log(camera.position.length());
+			
 				renderer.render( scene, camera );
-
 			}
-
 		</script>
 	</body>
 </html>

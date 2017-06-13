@@ -140,7 +140,7 @@
 			function animate() {
 				requestAnimationFrame( animate );
 
-				//更新轨迹控制器，这里轨迹控制器与相机关联，所以也会更新相机的位置和角度。注意这里就不用设置相机的lookAt了
+				//更新轨迹控制器，这里轨迹控制器与相机关联，所以也会更新相机的位置和角度。因此这里就不用设置相机的lookAt了。如果鼠标移动的话，相机会绕着原点旋转
 				controls.update();
 				
 				//renderer渲染的是线框

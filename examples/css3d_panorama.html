@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js css3d - panorama</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -11,11 +15,9 @@
 				cursor: move;
 				overflow: hidden;
 			}
-
 			a {
 				color: #ffffff;
 			}
-
 			#info {
 				position: absolute;
 				width: 100%;
@@ -31,12 +33,14 @@
 	</head>
 	<body>
 		<script src="../build/three.js"></script>
+		<!-- 
+		使用CSS3渲染3D的DOM元素
+		-->
 		<script src="js/renderers/CSS3DRenderer.js"></script>
 
 		<div id="info"><a href="http://threejs.org" target="_blank">three.js css3d</a> - panorama demo. cubemap by <a href="http://www.humus.name/index.php?page=Textures" target="_blank">Humus</a>.</div>
 
 		<script>
-
 			var camera, scene, renderer;
 			var geometry, material, mesh;
 			var target = new THREE.Vector3();
@@ -50,11 +54,17 @@
 			animate();
 
 			function init() {
-
+				/*
+				PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 );
 
 				scene = new THREE.Scene();
-
+/*
 				var sides = [
 					{
 						url: 'textures/cube/Bridge2/posx.jpg',
@@ -87,93 +97,124 @@
 						rotation: [ 0, 0, 0 ]
 					}
 				];
+*/
+				var sides = [
+					{
+						url: 'textures/cube/test/px.jpg',
+						position: [ -512, 0, 0 ],
+						rotation: [ 0, Math.PI / 2, 0 ]
+					},
+					{
+						url: 'textures/cube/test/nx.jpg',
+						position: [ 512, 0, 0 ],
+						rotation: [ 0, -Math.PI / 2, 0 ]
+					},
+					{
+						url: 'textures/cube/test/py.jpg',
+						position: [ 0,  512, 0 ],
+						rotation: [ Math.PI / 2, 0, Math.PI ]
+					},
+					{
+						url: 'textures/cube/test/ny.jpg',
+						position: [ 0, -512, 0 ],
+						rotation: [ - Math.PI / 2, 0, Math.PI ]
+					},
+					{
+						url: 'textures/cube/test/pz.jpg',
+						position: [ 0, 0,  512 ],
+						rotation: [ 0, Math.PI, 0 ]
+					},
+					{
+						url: 'textures/cube/test/nz.jpg',
+						position: [ 0, 0, -512 ],
+						rotation: [ 0, 0, 0 ]
+					}
+				];
 
 				for ( var i = 0; i < sides.length; i ++ ) {
-
 					var side = sides[ i ];
 
 					var element = document.createElement( 'img' );
-					element.width = 1026; // 2 pixels extra to close the gap.
+					element.width = 1026; // 2 pixels extra to close the gap. 使用额外的两个像素来填补间隙，否则会有一条黑边
 					element.src = side.url;
 
 					var object = new THREE.CSS3DObject( element );
+					//fromArray(buffer, offset)，从数组的offset位置开始转化为vectorN
 					object.position.fromArray( side.position );
 					object.rotation.fromArray( side.rotation );
 					scene.add( object );
-
 				}
 
 				renderer = new THREE.CSS3DRenderer();
+				//设置渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
 				document.body.appendChild( renderer.domElement );
-
-				//
 
 				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 				document.addEventListener( 'wheel', onDocumentMouseWheel, false );
 
+				//注意：触摸事件比鼠标事件少了一个touchend，因为暂不存在不放开手指的情况
 				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 				document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
 				window.addEventListener( 'resize', onWindowResize, false );
-
 			}
 
 			function onWindowResize() {
-
+				//重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
 				camera.aspect = window.innerWidth / window.innerHeight;
+				//更新透视相机的投影矩阵
 				camera.updateProjectionMatrix();
-
+				//重新设置渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
-
 			}
 
 			function onDocumentMouseDown( event ) {
-
+				//通知 Web 浏览器不要执行与事件关联的默认动作
 				event.preventDefault();
-
+				//在鼠标按下时监听鼠标移动和鼠标弹起事件，避免捕获不必要的事件浪费资源
 				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 				document.addEventListener( 'mouseup', onDocumentMouseUp, false );
-
 			}
 
 			function onDocumentMouseMove( event ) {
-
+				//currentEvent.movementX 是两个鼠标移动事件间隔时间中当中鼠标移动的相对坐标( currentEvent.screenX - previousEvent.screenX )
 				var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
 				var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 
 				lon -= movementX * 0.1;
 				lat += movementY * 0.1;
-
 			}
 
 			function onDocumentMouseUp( event ) {
-
+				//鼠标弹起时移除不必要的事件
 				document.removeEventListener( 'mousemove', onDocumentMouseMove );
 				document.removeEventListener( 'mouseup', onDocumentMouseUp );
-
 			}
 
 			function onDocumentMouseWheel( event ) {
-
+				//delta可以获取鼠标滚轮的方向和速度。如果delta的值是负的，那么滚轮就是向下滚动，正的就是向上。deltaX, deltaY分别是滚轮滚动的坐标值
 				camera.fov += event.deltaY * 0.05;
+				
+				//这里要设置一个视场范围，过大或过小的视场都会导致显示异常
+				camera.fov = Math.max(10, camera.fov);
+				camera.fov = Math.min(120, camera.fov);
+				
+				//更新相机的投影矩阵
 				camera.updateProjectionMatrix();
-
 			}
 
 			function onDocumentTouchStart( event ) {
-
 				event.preventDefault();
 
 				var touch = event.touches[ 0 ];
 
 				touchX = touch.screenX;
 				touchY = touch.screenY;
-
 			}
 
 			function onDocumentTouchMove( event ) {
-
 				event.preventDefault();
 
 				var touch = event.touches[ 0 ];
@@ -183,18 +224,19 @@
 
 				touchX = touch.screenX;
 				touchY = touch.screenY;
-
 			}
 
 			function animate() {
-
 				requestAnimationFrame( animate );
 
 				lon +=  0.1;
+				//设置仰俯角范围[-85,85]
 				lat = Math.max( - 85, Math.min( 85, lat ) );
+				//THREE.Math.degToRad将角度转换成弧度
 				phi = THREE.Math.degToRad( 90 - lat );
 				theta = THREE.Math.degToRad( lon );
 
+				//相机注视的点是单位球上的一点，这是一个方向向量
 				target.x = Math.sin( phi ) * Math.cos( theta );
 				target.y = Math.cos( phi );
 				target.z = Math.sin( phi ) * Math.sin( theta );
@@ -202,9 +244,7 @@
 				camera.lookAt( target );
 
 				renderer.render( scene, camera );
-
 			}
-
 		</script>
 	</body>
 </html>
