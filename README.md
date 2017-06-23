@@ -13,6 +13,7 @@
 - [canvas_geometry_hierarchy.html](examples/canvas_geometry_hierarchy.html)
 - [canvas_geometry_panorama.html](examples/canvas_geometry_panorama.html)
 - [canvas_geometry_panorama_fisheye.html](examples/canvas_geometry_panorama_fisheye.html)
+- [canvas_geometry_shapes.html](examples/canvas_geometry_shapes.html)
 - [canvas_lines.html](examples/canvas_lines.html)
 - [canvas_materials_normal.html](examples/canvas_materials_normal.html)
 - [canvas_materials_reflection.html](examples/canvas_materials_reflection.html)
@@ -104,7 +105,10 @@ Canvas渲染器不使用WebGL展示制作的场景，而使用稍微慢一点的
 3. SoftwareRenderer: The SoftwareRenderer is a drop-in renderer for Three.js that can be used on the server and the client, if you need to be GPU independent.
 <br>Software渲染器对于Three.js来说是一种退化的渲染器，在不依赖GPU的情况下，它既可以使用在服务器上也可以使用在客户端上。
 
-WebGL、Canvas、Software这三种渲染器理论上可以相互替换(粒子Particles除外)。但是WebGL需要环境光否则是黑色的，其它两个即使没有环境光也能渲染出材质。
+WebGL需要环境光否则是黑色的，其它两个即使没有环境光也能渲染出材质。
+对于粒子系统：CanvasRenderer只能显示THREE.Sprite(原Particle)，WebGLRenderer只能显示THREE.Points(原ParticleSystem)
+大部分情况下，WebGL、Canvas、Software这三种渲染器理论上可以相互替换。
+
 <br>另外，所使用的图片数据的大小必须是2的阶乘，横竖的像素长度大小必须是32x32，128x128等2的阶乘的形式。
 
 在渲染速度方面：WebGL > Canvas > Software。
@@ -178,6 +182,7 @@ Multiplies the current matrix by the one specified through the parameters.
 ## 我的疑惑
 ### [CombinedCamera.js](examples/js/cameras/CombinedCamera.html)中的setLens函数和aspect为什么有关?
 ### [canvas_materials_reflection.js](examples/js/cameras/canvas_materials_reflection.html)中texture.mapping为什么只能用SphericalReflectionMapping，其它碎片噪音哪里来的?
+### WebGLRenderer中的sortElements和sortObjects是怎么用的
 
 ## 相关插件
 | 插件 | 功能 |

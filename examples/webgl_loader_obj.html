@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js webgl - loaders - OBJ loader</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -60,10 +64,17 @@
 				// scene
 
 				scene = new THREE.Scene();
-
+				/*
+				ambientlight是环境光，提供的是在不同位置和方向上强度都相同的光源，相当于光照模型中各物体之间的反射光，
+				因此通常用来表现光强中非常弱的那部分光，好比阳光下看到的阴影部分。
+				*/
 				var ambient = new THREE.AmbientLight( 0x101030 );
 				scene.add( ambient );
 
+				/*
+				平行光光源就如同太阳，若在场景中添加了一个平行光（Directional light），其可以影响场景中的所有物体，无论平行光光源设置在任何位置
+				
+				*/
 				var directionalLight = new THREE.DirectionalLight( 0xffeedd );
 				directionalLight.position.set( 0, 0, 1 );
 				scene.add( directionalLight );

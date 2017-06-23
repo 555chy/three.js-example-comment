@@ -36,9 +36,7 @@
  
         <script>
             var container, stats;
- 
             var camera, scene, renderer;
- 
             var cube, plane;
  
             var targetRotation = 0;
@@ -89,7 +87,6 @@
                 scene = new THREE.Scene();
  
                 // Cube
-                 
                 /*
                 在three.js中有这么一句：exports.CubeGeometry = BoxGeometry;
                 说明在当前r84版本的three.js中，CubeGeometry已经被BoxGeometry取代了。
@@ -129,10 +126,7 @@
                 plane = new THREE.Mesh( geometry, material );
                 scene.add( plane );
 
-				/*
-				由于WebGL在手机上支持不好，因此如果要在手机上运行的话需要改为CanvasRender。 
-                尽量使用WebGLRender，因为它会使用GPU辅助计算，而普通的Canvas只会用到CPU
-                */
+                //尽量使用WebGLRender，因为它会使用GPU辅助计算，而普通的Canvas只会用到CPU
 				renderer = new THREE.CanvasRenderer();
                 //renderer = new THREE.WebGLRenderer();
                 //设置渲染器的"清除色"和"透明度"
@@ -170,7 +164,7 @@
                 camera.aspect = window.innerWidth / window.innerHeight;
                 //更新透视相机的投影矩阵
                 camera.updateProjectionMatrix();
- 
+				//更新待渲染场景的大小
                 renderer.setSize( window.innerWidth, window.innerHeight );
             }
  
@@ -214,21 +208,20 @@
             }
  
             function onDocumentTouchStart( event ) {
-                if ( event.touches.length > 1 ) {           
+				/*
+				event.touches存放的是多指触碰时的位置数组
+				三个等号是恒等，比较数值的同时也比较类型。
+                这里限制只有单指触摸的时候才执行相应的方法
+				*/
+                if ( event.touches.length === 1 ) {           
                     event.preventDefault();
-                    console.log(event.touches[0]);
                     mouseXOnMouseDown = event.touches[ 0 ].pageX - windowHalfX;
                     targetRotationOnMouseDown = targetRotation;
                 }
             }
  
             function onDocumentTouchMove( event ) {
-				/*
-				三个等号是恒等，比较数值的同时也比较类型。
-                这里限制只有单指触摸的时候才执行相应的方法
-				*/
                 if ( event.touches.length === 1 ) {
- 
                     event.preventDefault();
  
                     mouseX = event.touches[ 0 ].pageX - windowHalfX;
@@ -246,11 +239,14 @@
             }
  
             function render() {
-                //将旋转的角度按右手螺旋定则更新到原旋转角上
+                /*
+				将旋转的角度按右手螺旋定则更新到原旋转角上
+				rotation.y是绕Y轴旋转
+				rotation.y其实是关于mouseX一元一次线性函数
+				*/
                 plane.rotation.y = cube.rotation.y += ( targetRotation - cube.rotation.y ) * 0.05;
                 renderer.render( scene, camera );
             }
         </script>
     </body>
 </html>
-

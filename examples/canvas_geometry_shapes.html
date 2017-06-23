@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js canvas - geometry - shapes</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -27,17 +31,23 @@
 
 		<script src="../build/three.js"></script>
 
+		<!--
+		想要使用CanvasRenderer，必须添加如下两个js文件 
+		Projector.js顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
+		THREE.Projector has been moved to /examples/js/renderers/Projector.js. three.js:42883:3
+		TypeError: THREE.RenderableVertex is not a constructor 
+		-->
 		<script src="js/renderers/Projector.js"></script>
 		<script src="js/renderers/CanvasRenderer.js"></script>
 
+		<!--
+		统计插件(FPS，渲染时间，chrome内存使用率)，min表示js代码经过压缩
+		-->
 		<script src="js/libs/stats.min.js"></script>
 
 		<script>
-
 			var container, stats;
-
 			var camera, scene, renderer;
-
 			var group, text, plane;
 
 			var targetRotation = 0;
@@ -51,54 +61,135 @@
 
 			init();
 			animate();
-
+					
 			function init() {
-
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
+				/*
+				透视相机
+                PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 1000 );
+				//定义相机的位置，有如下两种方式。如果不设置的话，相机位置为默认的Vector3{x:0,y:0,z:0}
 				camera.position.set( 0, 150, 500 );
+				camera.position.y = 150;
+				camera.position.z = 500;
 
 				scene = new THREE.Scene();
 
+				/*
+				Group对象，实质就是一个Object3D对象，打包后对象可以一起操作。
+				打包过后，对象就有里层对象和外层对象，如上面例子中group是里层对象，line1和line2是外层对象。
+				里层对象相对外层对象作相对运动，即里层对象所有运动都是相对于外层对象而言的。
+				*/
 				group = new THREE.Group();
 				group.position.y = 50;
 				scene.add( group );
 
 				function addShape( shape, color, x, y, z, rx, ry, rz, s ) {
-
 					// flat shape
-
 					var geometry = new THREE.ShapeGeometry( shape );
 					var material = new THREE.MeshBasicMaterial( { color: color, overdraw: 0.5 } );
-
+					//双面渲染，否则只会渲染单面
+					//material.side = THREE.doubleSide;
 					var mesh = new THREE.Mesh( geometry, material );
 					mesh.position.set( x, y, z );
+					//这里的旋转是绕着原点旋转
 					mesh.rotation.set( rx, ry, rz );
+					//这里的放大是将原坐标乘以一定的比例
 					mesh.scale.set( s, s, s );
 					group.add( mesh );
 
 					// line
-
 					var geometry = shape.createPointsGeometry();
+					//封口
 					geometry.vertices.push( geometry.vertices[ 0 ].clone() );
+					geometry.colors = [];
+					//var base = 0xff0000 / geometry.vertices.length;
+					for(var i=0; i<geometry.vertices.length; i++) {
+						//geometry.colors[i] = new THREE.Color(parseInt(base * i));
+						geometry.colors[i] = new THREE.Color(0xffffff);
+						geometry.colors[i].setHSL(i / geometry.vertices.length, 0.5, 0.5);
+					}
 
-					var material = new THREE.LineBasicMaterial( { linewidth: 10, color: 0x333333, transparent: true } );
+					//WebGLRenderer不支持linewidth，只有CanvasRenderer才支持该属性
+					var material = new THREE.LineBasicMaterial( { linewidth: 10, color: 0x333333, transparent: true, vertexColors: THREE.VertexColors } );
 
 					var line = new THREE.Line( geometry, material );
 					line.position.set( x, y, z );
 					line.rotation.set( rx, ry, rz );
 					line.scale.set( s, s, s );
 					group.add( line );
+					
+					//three.js:41585 THREE.ParticleBasicMaterial has been renamed to THREE.PointsMaterial.
+					//var material = new THREE.PointsMaterial( { size: 10, color: 0xff0000, program: programFill } );
+					/*
+					THREE.ParticleSystem has been renamed to THREE.Points.
+					此外，该对象只能在WebGLRenderer中显示
+					*/
+					//var points = new THREE.Points(pointsGeometry, material);
 
+					var doublePI = Math.PI * 2;
+					var programFill = function ( context ) {
+						context.beginPath();
+						context.arc( 0, 0, 5, 0, doublePI, true );
+						context.fill();
+					};
+					
+					//WebGLRenderer不支持Sprite，只有CanvasRenderer才支持
+					//添加辅助点
+					function addAuxiliarySprite(vector, x, y, z, rz, s) {
+						//three.js:41564 THREE.Particle has been renamed to THREE.Sprite.
+						var sprite = new THREE.Sprite(new THREE.SpriteCanvasMaterial( { color: 0xff0000, program: programFill }));
+						var pos = vector.clone().rotateAround(new THREE.Vector2(0, 0), rz);
+						sprite.position.set(pos.x, pos.y, 0);
+						sprite.position.multiplyScalar(s);
+						sprite.position.add(new THREE.Vector3(x, y, z));
+						group.add(sprite);
+					}
+					
+					for(var i=0; i<shape.curves.length; i++) {
+						var curve = shape.curves[i];
+						if(curve instanceof THREE.LineCurve) {
+							//2, function LineCurve( v1, v2 )
+							addAuxiliarySprite(curve.v1, x, y, z, rz, s);
+							addAuxiliarySprite(curve.v2, x, y, z, rz, s);
+						} else if(curve instanceof THREE.QuadraticBezierCurve) {
+							//3, function QuadraticBezierCurve( v0, v1, v2 )
+							addAuxiliarySprite(curve.v0, x, y, z, rz, s);
+							addAuxiliarySprite(curve.v1, x, y, z, rz, s);
+							addAuxiliarySprite(curve.v2, x, y, z, rz, s);
+						} else if(curve instanceof THREE.CubicBezierCurve) {
+							//4, function CubicBezierCurve( v0, v1, v2, v3 )
+							addAuxiliarySprite(curve.v0, x, y, z, rz, s);
+							addAuxiliarySprite(curve.v1, x, y, z, rz, s);
+							addAuxiliarySprite(curve.v2, x, y, z, rz, s);
+							addAuxiliarySprite(curve.v3, x, y, z, rz, s);
+						} else if(curve instanceof THREE.SplineCurve) {
+							//1, function SplineCurve( points /* array of Vector2 */ )
+							for(var j=0;j<curve.points.length;j++) {
+								addAuxiliarySprite(curve.points[j], x, y, z, rz, s);
+							}
+						} else if(curve instanceof THREE.ArcCurve) {
+							//6, function ArcCurve( aX, aY, aRadius, aStartAngle, aEndAngle, aClockwise )
+							addAuxiliarySprite(new THREE.Vector2(curve.aX, curve.aY), x, y, z, rz, s);
+						} else if(curve instanceof THREE.EllipseCurve) {
+							//8, function EllipseCurve( aX, aY, xRadius, yRadius, aStartAngle, aEndAngle, aClockwise, aRotation )
+							addAuxiliarySprite(new THREE.Vector2(curve.aX, curve.aY), x, y, z, rz, s);
+						} else {
+							//输出"函数名"和"参数个数"
+							console.log(curve.constructor.name + "(" + curve.constructor.length + ")");
+						}
+					}
 				}
 
-
 				// California
-
 				var californiaPts = [];
-
 				californiaPts.push( new THREE.Vector2 ( 610, 320 ) );
 				californiaPts.push( new THREE.Vector2 ( 450, 300 ) );
 				californiaPts.push( new THREE.Vector2 ( 392, 392 ) );
@@ -121,25 +212,19 @@
 				californiaPts.push( new THREE.Vector2 ( 626, 425 ) );
 				californiaPts.push( new THREE.Vector2 ( 600, 370 ) );
 				californiaPts.push( new THREE.Vector2 ( 610, 320 ) );
-
+				//shape是二维几何体，和SVG中的path功能类似。数组参数相当于逐个lineTo
 				var californiaShape = new THREE.Shape( californiaPts );
 
-
 				// Triangle
-
 				var triangleShape = new THREE.Shape();
 				triangleShape.moveTo(  80, 20 );
 				triangleShape.lineTo(  40, 80 );
 				triangleShape.lineTo( 120, 80 );
 				triangleShape.lineTo(  80, 20 ); // close path
 
-
 				// Heart
-
 				var x = 0, y = 0;
-
 				var heartShape = new THREE.Shape(); // From http://blog.burlock.org/html5/130-paths
-
 				heartShape.moveTo( x + 25, y + 25 );
 				heartShape.bezierCurveTo( x + 25, y + 25, x + 20, y, x, y );
 				heartShape.bezierCurveTo( x - 30, y, x - 30, y + 35,x - 30,y + 35 );
@@ -148,23 +233,17 @@
 				heartShape.bezierCurveTo( x + 80, y + 35, x + 80, y, x + 50, y );
 				heartShape.bezierCurveTo( x + 35, y, x + 25, y + 25, x + 25, y + 25 );
 
-
 				// Square
-
 				var sqLength = 80;
-
 				var squareShape = new THREE.Shape();
 				squareShape.moveTo( 0,0 );
 				squareShape.lineTo( 0, sqLength );
 				squareShape.lineTo( sqLength, sqLength );
 				squareShape.lineTo( sqLength, 0 );
 				squareShape.lineTo( 0, 0 );
-
-
+				
 				// Rectangle
-
 				var rectLength = 120, rectWidth = 40;
-
 				var rectShape = new THREE.Shape();
 				rectShape.moveTo( 0,0 );
 				rectShape.lineTo( 0, rectWidth );
@@ -172,13 +251,9 @@
 				rectShape.lineTo( rectLength, 0 );
 				rectShape.lineTo( 0, 0 );
 
-
-				// Rounded rectangle
-
+				// Rounded rectangle，lineTo负责直线部分，quadraticCurveTo负责圆角部分
 				var roundedRectShape = new THREE.Shape();
-
 				( function roundedRect( ctx, x, y, width, height, radius ){
-
 					ctx.moveTo( x, y + radius );
 					ctx.lineTo( x, y + height - radius );
 					ctx.quadraticCurveTo( x, y + height, x + radius, y + height );
@@ -188,12 +263,9 @@
 					ctx.quadraticCurveTo( x + width, y, x + width - radius, y );
 					ctx.lineTo( x + radius, y );
 					ctx.quadraticCurveTo( x, y, x, y + radius );
-
 				} )( roundedRectShape, 0, 0, 50, 50, 20 );
 
-
-				// Circle
-
+				// Circle，需要的点是该圆的外切正方形
 				var circleRadius = 40;
 				var circleShape = new THREE.Shape();
 				circleShape.moveTo( 0, circleRadius );
@@ -201,14 +273,10 @@
 				circleShape.quadraticCurveTo( circleRadius, -circleRadius, 0, -circleRadius );
 				circleShape.quadraticCurveTo( -circleRadius, -circleRadius, -circleRadius, 0 );
 				circleShape.quadraticCurveTo( -circleRadius, circleRadius, 0, circleRadius );
-
-
+				
 				// Fish
-
 				x = y = 0;
-
 				var fishShape = new THREE.Shape();
-
 				fishShape.moveTo(x,y);
 				fishShape.quadraticCurveTo(x + 50, y - 80, x + 90, y - 10);
 				fishShape.quadraticCurveTo(x + 100, y - 10, x + 115, y - 40);
@@ -216,21 +284,20 @@
 				fishShape.quadraticCurveTo(x + 100, y + 10, x + 90, y + 10);
 				fishShape.quadraticCurveTo(x + 50, y + 80, x, y);
 
-
 				// Arc circle
-
 				var arcShape = new THREE.Shape();
 				arcShape.moveTo( 50, 10 );
+				//arc是相对当前位置，而absarc是绝对位置
 				arcShape.absarc( 10, 10, 40, 0, Math.PI*2, false );
 
+				//shape.holes，定义了一个路径数组，指在原来的形状上挖洞
 				var holePath = new THREE.Path();
 				holePath.moveTo( 20, 10 );
 				holePath.absarc( 10, 10, 10, 0, Math.PI*2, true );
+				//shape.curves和shape.holes都是array。curves存放的是Curve的子类，holes存放的是Path。
 				arcShape.holes.push( holePath );
 
-
 				// Smiley
-
 				var smileyShape = new THREE.Shape();
 				smileyShape.moveTo( 80, 40 );
 				smileyShape.absarc( 40, 40, 40, 0, Math.PI*2, false );
@@ -246,15 +313,17 @@
 				smileyEye2Path.moveTo( 65, 20 );
 				smileyEye2Path.absarc( 55, 20, 10, 0, Math.PI*2, true );
 				smileyShape.holes.push( smileyEye2Path );
-
+				
 				var smileyMouthPath = new THREE.Path();
 				// ugly box mouth
-				// smileyMouthPath.moveTo( 20, 40 );
-				// smileyMouthPath.lineTo( 60, 40 );
-				// smileyMouthPath.lineTo( 60, 60 );
-				// smileyMouthPath.lineTo( 20, 60 );
-				// smileyMouthPath.lineTo( 20, 40 );
-
+				/*
+				 smileyMouthPath.moveTo( 20, 40 );
+				 smileyMouthPath.lineTo( 60, 40 );
+				 smileyMouthPath.lineTo( 60, 60 );
+				 smileyMouthPath.lineTo( 20, 60 );
+				 smileyMouthPath.lineTo( 20, 40 );
+				*/
+				
 				smileyMouthPath.moveTo( 20, 40 );
 				smileyMouthPath.quadraticCurveTo( 40, 60, 60, 40 );
 				smileyMouthPath.bezierCurveTo( 70, 45, 70, 50, 60, 60 );
@@ -262,7 +331,6 @@
 				smileyMouthPath.quadraticCurveTo( 5, 50, 20, 40 );
 
 				smileyShape.holes.push( smileyMouthPath );
-
 
 				// Spline shape + path extrusion
 
@@ -274,10 +342,10 @@
 
 				var splineShape = new THREE.Shape(  );
 				splineShape.moveTo( 0, 0 );
+				//沿着提供的点集绘制一条光滑的曲线。
 				splineShape.splineThru( splinepts );
 
-
-				// addShape( shape, color, x, y, z, rx, ry,rz, s );
+				// addShape( shape, color, x, y, z, rx, ry, rz, s );
 
 				addShape( californiaShape, 0xffaa00, -300, -100, 0, 0, 0, 0, 0.25 );
 				addShape( triangleShape, 0xffee00, -180, 0, 0, 0, 0, 0, 1 );
@@ -290,124 +358,124 @@
 				addShape( arcShape, 0xbb4422, 150, 0, 0, 0, 0, 0, 1 );
 				addShape( splineShape, 0x888888, -50, -100, 0, 0, 0, 0, 0.2 );
 
-				//
-
 				renderer = new THREE.CanvasRenderer();
+				//设置渲染器的"清除色"和"透明度"
 				renderer.setClearColor( 0xf0f0f0 );
+				 //设置屏幕像素比，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
 				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				renderer.sortElements = false;
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
 				container.appendChild( renderer.domElement );
 
+				 //左上角的统计信息(FPS，渲染时间，chrome内存使用率)
 				stats = new Stats();
+				//这里注意，统计插件的dom元素是"dom"，而不是domElement
 				container.appendChild( stats.dom );
 
+				/*
+                element.addEventListener(event, function, useCapture)
+                useCapture，可选。true：事件句柄在捕获阶段执行；false：默认，事件句柄在冒泡阶段执行
+                */
+				//mouse事件是针对PC浏览器的
 				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+				//touch事件是针对手持设备的
 				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 				document.addEventListener( 'touchmove', onDocumentTouchMove, false );
-
-				//
-
+				
 				window.addEventListener( 'resize', onWindowResize, false );
-
 			}
 
 			function onWindowResize() {
-
 				windowHalfX = window.innerWidth / 2;
 				windowHalfY = window.innerHeight / 2;
 
+				 //重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
 				camera.aspect = window.innerWidth / window.innerHeight;
+				//更新透视相机的投影矩阵
 				camera.updateProjectionMatrix();
-
+				//更新待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
-
 			}
 
-			//
-
 			function onDocumentMouseDown( event ) {
-
+				//通知 Web 浏览器不要执行与事件关联的默认动作(如果存在这样的动作)
 				event.preventDefault();
 
+				//在mousedown的时候动态绑定事件
 				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 				document.addEventListener( 'mouseup', onDocumentMouseUp, false );
 				document.addEventListener( 'mouseout', onDocumentMouseOut, false );
 
 				mouseXOnMouseDown = event.clientX - windowHalfX;
 				targetRotationOnMouseDown = targetRotation;
-
 			}
 
 			function onDocumentMouseMove( event ) {
-
-				mouseX = event.clientX - windowHalfX;
-
-				targetRotation = targetRotationOnMouseDown + ( mouseX - mouseXOnMouseDown ) * 0.02;
-
+				/*
+                html的坐标轴是以左上角为(0,0)，右下方向为正方向
+                event.clientX=event.pageX返回当事件被触发时鼠标指针向对于浏览器可见区域的X坐标
+                event.offsetX返回当前事件相对于事件源元素（srcElement）的X坐标
+                event.screenX鼠标相对于用户显示器屏幕左上角的X坐标
+                */
+                mouseX = event.clientX - windowHalfX;
+                //每一次旋转都从mousedown的角度开始计算
+                targetRotation = targetRotationOnMouseDown + ( mouseX - mouseXOnMouseDown ) * 0.02;
 			}
 
 			function onDocumentMouseUp( event ) {
-
+			 //在mouseUp的时候解绑定相应事件
 				document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
 				document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
 				document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
-
 			}
 
 			function onDocumentMouseOut( event ) {
-
+				 //鼠标移出该区域的时候解除相应的事件绑定
 				document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
 				document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
 				document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
-
 			}
 
 			function onDocumentTouchStart( event ) {
-
+				/*
+				event.touches存放的是多指触碰时的位置数组
+				三个等号是恒等，比较数值的同时也比较类型。
+                这里限制只有单指触摸的时候才执行相应的方法
+				*/
 				if ( event.touches.length == 1 ) {
-
 					event.preventDefault();
-
 					mouseXOnMouseDown = event.touches[ 0 ].pageX - windowHalfX;
 					targetRotationOnMouseDown = targetRotation;
-
 				}
-
 			}
 
 			function onDocumentTouchMove( event ) {
-
 				if ( event.touches.length == 1 ) {
-
 					event.preventDefault();
-
 					mouseX = event.touches[ 0 ].pageX - windowHalfX;
 					targetRotation = targetRotationOnMouseDown + ( mouseX - mouseXOnMouseDown ) * 0.05;
-
 				}
-
 			}
 
-			//
-
 			function animate() {
-
 				requestAnimationFrame( animate );
 
 				render();
+				//这里可以在render前后使用stats.begin和stats.end，也可以在每次渲染的时候调用一次stats.update
 				stats.update();
-
 			}
 
 			function render() {
-
+				/*
+				将旋转的角度按右手螺旋定则更新到原旋转角上
+				rotation.y是绕Y轴旋转
+				rotation.y其实是关于mouseX一元一次线性函数
+				*/
 				group.rotation.y += ( targetRotation - group.rotation.y ) * 0.05;
 				renderer.render( scene, camera );
-
 			}
-
 		</script>
-
 	</body>
 </html>
