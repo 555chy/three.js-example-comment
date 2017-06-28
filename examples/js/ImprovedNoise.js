@@ -25,6 +25,7 @@ var ImprovedNoise = function () {
 
 	}
 
+	//线性插值
 	function lerp(t, a, b) {
 
 		return a + t * (b - a);
@@ -40,7 +41,7 @@ var ImprovedNoise = function () {
 	}
 
 	return {
-
+		//噪声函数本质上就是一个基于种子的随机数产生器。输入参数为一个整数，输出结果为基于输入参数的随机数。如果两次输入同样的参数，则结果都是一样的。
 		noise: function (x, y, z) {
 
 			var floorX = Math.floor(x), floorY = Math.floor(y), floorZ = Math.floor(z);

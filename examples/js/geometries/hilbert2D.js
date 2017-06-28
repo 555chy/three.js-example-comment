@@ -42,22 +42,36 @@ function hilbert2D ( center, size, iterations, v0, v1, v2, v3 ) {
 		vec_s[ v3 ]
 	];
 
-	// Recurse iterations
+	// Recurse iterations, 递归迭代
 	if ( 0 <= -- iterations ) {
-
 		var tmp = [];
+		
+		/*
+		1. Function.apply(obj,args)方法接收两个参数
+		obj：这个对象将代替Function类里this对象
+		args：这个是数组，它将作为参数传给Function（args-->arguments）
 
+		2. Function.call(obj,[param1[,param2[,…[,paramN]]]])
+		obj：这个对象将代替Function类里this对象
+		params：这个是一个参数列表
+
+		apply方法能劫持另外一个对象的方法，继承另外一个对象的属性。而call和apply的作用是一样的，只不过是一个传的是数组一个传的是参数列表不一样。
+
+		在这里Array.prototype.push.apply(a, b)的作用是连接数组，相当于a.concat(b)。
+		由于concat不用像apply一样去改变数组上下文，所以效率更高
+		
+		这里希尔伯特2D曲线依次是：左凹、下凹、下凹、右凹
+		*/
 		Array.prototype.push.apply( tmp, hilbert2D ( vec[ 0 ], half, iterations, v0, v3, v2, v1 ) );
 		Array.prototype.push.apply( tmp, hilbert2D ( vec[ 1 ], half, iterations, v0, v1, v2, v3 ) );
 		Array.prototype.push.apply( tmp, hilbert2D ( vec[ 2 ], half, iterations, v0, v1, v2, v3 ) );
 		Array.prototype.push.apply( tmp, hilbert2D ( vec[ 3 ], half, iterations, v2, v1, v0, v3 ) );
 
+		console.log(tmp)
 		// Return recursive call
 		return tmp;
-
 	}
 
 	// Return complete Hilbert Curve.
 	return vec;
-
 }

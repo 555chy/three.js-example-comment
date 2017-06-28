@@ -36,6 +36,7 @@
 - [webgl_test_memory.html](examples/webgl_test_memory.html)
 
 - [CombinedCamera.js](examples/js/cameras/CombinedCamera.js)
+- [hilbert2D.js](examples/js/geometries/hilbert2D.js)	
 
 ## 当前批阅项
 - [webgl_lights_hemisphere.html](examples/webgl_lights_hemisphere.html)
@@ -177,6 +178,34 @@ Multiplies the current matrix by the one specified through the parameters.
 **范例:**
 - [webgl_panorama_cube.html](examples/webgl_panorama_cube.html)
 
+### js的apply与call的异同
+1. Function.apply(obj,args)方法接收两个参数
+obj：这个对象将代替Function类里this对象
+args：这个是数组，它将作为参数传给Function（args-->arguments）
+
+2. Function.call(obj,[param1[,param2[,…[,paramN]]]])
+obj：这个对象将代替Function类里this对象
+params：这个是一个参数列表
+
+apply方法能劫持另外一个对象的方法，继承另外一个对象的属性。而call和apply的作用是一样的，只不过是一个传的是数组一个传的是参数列表不一样。
+
+Array.prototype.push.apply(a, b)的作用是连接数组，相当于a.concat(b)。
+由于concat不用像apply一样去改变数组上下文，所以效率更高
+
+**范例:**
+- [hilbert2D.js](examples/js/geometries/hilbert2D.js)
+
+### json和array的使用场景
+如果频繁添加删除，使用json；如果频繁取数据，使用array。
+
+### Line与LineSegments的区别
+THREE.Line使用WebGL中的gl.LINE_STRIP(一系列的连续直线，即折线)渲染
+THREE.LineSegments使用WebGL中的gl.LINES(每一对顶点被解释为一条直线，即线段)渲染
+
+**范例:**
+- [canvas_lines.html](examples/canvas_lines.html)
+- [canvas_lines_colors_2d.html](examples/canvas_lines_colors_2d.html)
+
 ***
 
 ## 我的疑惑
@@ -205,9 +234,10 @@ Multiplies the current matrix by the one specified through the parameters.
 | [TrackballControls.js](examples/js/controls/TrackballControls.js)					| 轨迹控制，鼠标左键旋转(与鼠标方向相反，用于触摸屏上)，右键平移，中键缩放；也可以使用键盘控制 |
 | [DeviceOrientationControls.js](examples/js/controls/DeviceOrientationControls.js)	| 设备朝向控制，仅对移动设备有效。根据设备朝向调整被控制元素朝向 |
 |||
-| [AsciiEffect.js](examples/js/effects/AsciiEffect.js) 				| ASCII文本画渲染效果 |
+| [AsciiEffect.js](examples/js/effects/AsciiEffect.js) 								| ASCII文本画渲染效果 |
 |||
-| [Bird.js](examples/obj/Bird.js) 				| 鸟的形状 |
+| [Bird.js](examples/obj/Bird.js) 													| 鸟的形状 |
+| [hilbert2D.js](examples/js/geometries/hilbert2D.js)								| 希尔伯特2D曲线 |
 ## [View Examples](examples/index.html)
 
 **相关博客推荐**
