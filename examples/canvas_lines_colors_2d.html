@@ -118,19 +118,15 @@
 				@param center     Center of Hilbert curve.
 				@param size       Total width of Hilbert curve.
 				@param iterations Number of subdivisions.
-					iterations(1) -> 1
-					iterations(2) -> 4
-					iterations(3) -> 16
-					iterations(4) -> 64
 					curve's count -> 4 ^ iterations 个首尾相连的凹线
-				@param v0         Corner index -X, -Z. 从第四象限，以顺时针方向定义各点索引
+				@param v0         Corner index -X, -Z. 从第二象限，以逆时针方向定义各点索引
 				@param v1         Corner index -X, +Z.
 				@param v2         Corner index +X, +Z.
 				@param v3         Corner index +X, -Z.
 				*/
 				var geometry3 = new THREE.Geometry(),
 					//原代码上的后4位均为无效参数, 返回的points是Vector3的数组
-					points = hilbert2D( new THREE.Vector3( 0,0,0 ), 400.0, 4, 0, 1, 2, 3, 4, 5, 6, 7 ),
+					points = hilbert2D( new THREE.Vector3( 0,0,0 ), 400.0, 2, 0, 1, 2, 3, 4, 5, 6, 7 ),
 					colors3 = [];
 
 				geometry3.vertices = points;
@@ -145,7 +141,6 @@
 				geometry3.colors = colors3;
 
 				// lines
-
 				material = new THREE.LineBasicMaterial( { color: 0xffffff, opacity: 1, linewidth: 3, vertexColors: THREE.VertexColors } );
 
 				var line, p, scale = 0.3, d = 225;
@@ -156,9 +151,10 @@
 				line = new THREE.Line(geometry3, material );
 				//line = new THREE.LineSegments(geometry3, material );
 				line.scale.x = line.scale.y = line.scale.z =  scale*1.5;
-				line.position.x = 0;
-				line.position.y = 0;
-				line.position.z = 0;
+				//line.position.x = 0;
+				//line.position.y = 0;
+				//line.position.z = 0;
+				line.position.set(0,0,0);
 				scene.add( line );
 
 				//左上角的统计信息(FPS，渲染时间，chrome内存使用率)
@@ -241,6 +237,7 @@
 				camera.position.x += ( mouseX - camera.position.x ) * .05;
 				camera.position.y += ( - mouseY + 200 - camera.position.y ) * .05;
 
+				//相机注视场景中央
 				camera.lookAt( scene.position );
 
 				//Date.now()得到的是当前时间戳，单位毫秒

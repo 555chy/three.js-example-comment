@@ -1,5 +1,6 @@
 /**
  * Hilbert Curve: Generates 2D-Coordinates in a very fast way.
+ * 希尔伯特曲线
  *
  * @author Dylan Grafmyre
  *
@@ -15,7 +16,8 @@
  * @param center     Center of Hilbert curve.
  * @param size       Total width of Hilbert curve.
  * @param iterations Number of subdivisions.
- * @param v0         Corner index -X, +Y, -Z.
+			curve's count -> 4 ^ iterations 个首尾相连两边竖起的凹线
+ * @param v0         Corner index -X, +Y, -Z. 从上矩形的第二象限开始，先以逆时针画左矩形，再连到右侧，以顺时针画右矩形
  * @param v1         Corner index -X, +Y, +Z.
  * @param v2         Corner index -X, -Y, +Z.
  * @param v3         Corner index -X, -Y, -Z.
@@ -64,10 +66,23 @@ function hilbert3D( center, size, iterations, v0, v1, v2, v3, v4, v5, v6, v7 ) {
 	];
 
 	// Recurse iterations
+	// Recurse iterations, 递归迭代
 	if ( -- iterations >= 0 ) {
-
 		var tmp = [];
+		/*
+		1. Function.apply(obj,args)方法接收两个参数
+		obj：这个对象将代替Function类里this对象
+		args：这个是数组，它将作为参数传给Function（args-->arguments）
 
+		2. Function.call(obj,[param1[,param2[,…[,paramN]]]])
+		obj：这个对象将代替Function类里this对象
+		params：这个是一个参数列表
+
+		apply方法能劫持另外一个对象的方法，继承另外一个对象的属性。而call和apply的作用是一样的，只不过是一个传的是数组一个传的是参数列表不一样。
+
+		在这里Array.prototype.push.apply(a, b)的作用是连接数组，相当于a.concat(b)。
+		由于concat不用像apply一样去改变数组上下文，所以效率更高
+		*/
 		Array.prototype.push.apply( tmp, hilbert3D ( vec[ 0 ], half, iterations, v0, v3, v4, v7, v6, v5, v2, v1 ) );
 		Array.prototype.push.apply( tmp, hilbert3D ( vec[ 1 ], half, iterations, v0, v7, v6, v1, v2, v5, v4, v3 ) );
 		Array.prototype.push.apply( tmp, hilbert3D ( vec[ 2 ], half, iterations, v0, v7, v6, v1, v2, v5, v4, v3 ) );
@@ -79,10 +94,8 @@ function hilbert3D( center, size, iterations, v0, v1, v2, v3, v4, v5, v6, v7 ) {
 
 		// Return recursive call
 		return tmp;
-
 	}
 
 	// Return complete Hilbert Curve.
 	return vec;
-
 }

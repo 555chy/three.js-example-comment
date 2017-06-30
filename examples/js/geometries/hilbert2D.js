@@ -1,5 +1,6 @@
 /**
  * Hilbert Curve: Generates 2D-Coordinates in a very fast way.
+ * 希尔伯特曲线
  *
  * @author Dylan Grafmyre
  *
@@ -10,7 +11,8 @@
  * @param center     Center of Hilbert curve.
  * @param size       Total width of Hilbert curve.
  * @param iterations Number of subdivisions.
- * @param v0         Corner index -X, -Z.
+			curve's count -> 4 ^ iterations 个首尾相连的凹线
+ * @param v0         Corner index -X, -Z. 从第二象限，以逆时针方向定义各点索引
  * @param v1         Corner index -X, +Z.
  * @param v2         Corner index +X, +Z.
  * @param v3         Corner index +X, -Z.
@@ -45,7 +47,6 @@ function hilbert2D ( center, size, iterations, v0, v1, v2, v3 ) {
 	// Recurse iterations, 递归迭代
 	if ( 0 <= -- iterations ) {
 		var tmp = [];
-		
 		/*
 		1. Function.apply(obj,args)方法接收两个参数
 		obj：这个对象将代替Function类里this对象
@@ -67,7 +68,6 @@ function hilbert2D ( center, size, iterations, v0, v1, v2, v3 ) {
 		Array.prototype.push.apply( tmp, hilbert2D ( vec[ 2 ], half, iterations, v0, v1, v2, v3 ) );
 		Array.prototype.push.apply( tmp, hilbert2D ( vec[ 3 ], half, iterations, v2, v1, v0, v3 ) );
 
-		console.log(tmp)
 		// Return recursive call
 		return tmp;
 	}

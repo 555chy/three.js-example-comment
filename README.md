@@ -15,6 +15,8 @@
 - [canvas_geometry_panorama_fisheye.html](examples/canvas_geometry_panorama_fisheye.html)
 - [canvas_geometry_shapes.html](examples/canvas_geometry_shapes.html)
 - [canvas_lines.html](examples/canvas_lines.html)
+- [canvas_lines_colors.html](examples/canvas_lines_colors.html)
+- [canvas_lines_colors_2d.html](examples/canvas_lines_colors_2d.html)
 - [canvas_materials_normal.html](examples/canvas_materials_normal.html)
 - [canvas_materials_reflection.html](examples/canvas_materials_reflection.html)
 - [canvas_particles_floor.html](examples/canvas_particles_floor.html)
@@ -204,14 +206,35 @@ THREE.LineSegments使用WebGL中的gl.LINES(每一对顶点被解释为一条直
 
 **范例:**
 - [canvas_lines.html](examples/canvas_lines.html)
-- [canvas_lines_colors_2d.html](examples/canvas_lines_colors_2d.html)
+- [canvas_lines_dashed.html](examples/canvas_lines_dashed.html)
+
+### 手机上运行webvr
+要么安装个谷歌VR支持插件，要么stereoeffect来代替vreffect
+
+### 场景的两种雾化效果
+1. scene.fog = new THREE.Fog(color, near, far)
+第一个参数是雾化效果或者颜色(0xffffff)，后面两个属性用来调节雾的显示，重什么地方开始到什么地方结束
+2. scene.fog = new THREE.Fog(color, concentration)
+第一个参数是雾化效果或者颜色(0xffffff)，第二个参数是雾的浓度(0.015)
+
+**范例:**
+- [webgl_geometry_terrain_fog.html](examples/webgl_geometry_terrain_fog.html)
+
+### 样条曲线(CatmullRomCurve3)与贝赛尔曲线的区别(CubicBezierCurve、QuadraticBezier)
+贝塞尔曲线只会穿过首尾两个控制点而不过中间的控制点，在某些场合希望曲线穿过所有控制点的话可以使用catmull-rom spline（简称CR-Spline）
+CR-Spline需要至少4个控制点，首尾两个控制点为辅助点，曲线不会穿过，其余控制点在t=[0,1]之间平滑地穿过，t=0时值等于第2个顶点，而t=1时值等于倒数第2个顶点
+如果传入的控制点首尾相等形成闭合环，那么不用计算，直接取值p0=pN-1，pN=p1就会成为一条光滑的曲线了。
+
+**范例:**
+- [canvas_lines_dashed.html](examples/canvas_lines_dashed.html)
 
 ***
 
 ## 我的疑惑
 ### [CombinedCamera.js](examples/js/cameras/CombinedCamera.html)中的setLens函数和aspect为什么有关?
 ### [canvas_materials_reflection.js](examples/js/cameras/canvas_materials_reflection.html)中texture.mapping为什么只能用SphericalReflectionMapping，其它碎片噪音哪里来的?
-### WebGLRenderer中的sortElements和sortObjects是怎么用的
+### [canvas_geometry_shapes.html](examples/canvas_geometry_shapes.html)中WebGLRenderer中的sortElements和sortObjects是怎么用的?
+### [canvas_lines_dashed.html](examples/canvas_lines_dashed.html)中geometry.computeLineDistances()有什么用？LineDashedMaterial材质不计算
 
 ## 相关插件
 | 插件 | 功能 |
@@ -244,6 +267,10 @@ THREE.LineSegments使用WebGL中的gl.LINES(每一对顶点被解释为一条直
 - [three.js 源码注释](http://blog.csdn.net/omni360/article/details/38842291)
 - [three.js 实例讲解](http://www.cnblogs.com/amy2011/p/6358527.html)
 - [WebGl 中文网](http://www.hewebgl.com/article/articledir/1)
+
+**范例推荐**
+- 办公室
+https://hypnosnova.github.io/ThreeQuery/lab/office/office.html
 
 **Note:** 如果GitHub的当前页没有index.html的话，GitHub会按设置好的模板加载README.md
 

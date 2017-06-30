@@ -77,6 +77,13 @@
 				controls.lookSpeed = 0.1;
 
 				scene = new THREE.Scene();
+				/*
+				场景的两种雾化效果(这里没有打光，因此雾不会显示出来)
+				1. scene.fog = new THREE.Fog(color, near, far)
+				第一个参数是雾化效果或者颜色(0xffffff)，后面两个属性用来调节雾的显示，重什么地方开始到什么地方结束
+				2. scene.fog = new THREE.Fog(color, concentration)
+				第一个参数是雾化效果或者颜色(0xffffff)，第二个参数是雾的浓度(0.015)
+				*/
 				scene.fog = new THREE.FogExp2( 0xefd1b5, 0.0025 );
 
 				data = generateHeight( worldWidth, worldDepth );

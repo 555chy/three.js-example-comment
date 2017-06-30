@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js canvas - lines - colors</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -10,11 +14,9 @@
 				margin: 0px;
 				overflow: hidden;
 			}
-
 			a {
 				color:#0078ff;
 			}
-
 			#info {
 				position: absolute;
 				top: 10px; width: 100%;
@@ -25,12 +27,16 @@
 				text-align: center;
 				z-index:100;
 			}
-
+			/*
+			未访问		a:link    {color:blue;}
+			已访问		a:visited {color:blue;}
+			鼠标悬停	a:hover   {color:red;}
+			鼠标按下	a:active  {color:yellow;}
+			*/
 			a {
 				color: orange;
 				text-decoration: none;
 			}
-
 			a:hover {
 				color: #0080ff;
 			}
@@ -38,7 +44,6 @@
 		</style>
 	</head>
 	<body>
-
 		<div id="info">
 			<a href="http://threejs.org" target="_blank">three.js</a> - color lines
 			[<a href="http://en.wikipedia.org/wiki/Hilbert_curve">Hilbert curve</a> thanks to <a href="http://www.openprocessing.org/visuals/?visualID=15599">Thomas Diewald</a>]
@@ -46,167 +51,207 @@
 
 		<script src="../build/three.js"></script>
 
+		<!--
+		想要使用CanvasRenderer，必须添加如下两个js文件 
+		Projector.js顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
+		THREE.Projector has been moved to /examples/js/renderers/Projector.js. three.js:42883:3
+		TypeError: THREE.RenderableVertex is not a constructor 
+		-->
 		<script src="js/renderers/Projector.js"></script>
 		<script src="js/renderers/CanvasRenderer.js"></script>
 
+		<!--
+		检测支持(canvas，webgl，workers，fileApi)
+		-->
 		<script src="js/Detector.js"></script>
+		
+		<!--
+		统计插件(FPS，渲染时间，chrome内存使用率)，min表示js代码经过压缩
+		-->
 		<script src="js/libs/stats.min.js"></script>
+		
+		<!--
+		希尔伯特3D曲线
+		-->
 		<script src="js/geometries/hilbert3D.js"></script>
-
 		<script>
-
+			//如果不支持webgl，则会在当前的父布局上添加一个不支持的提示信息DIV
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-
 			var mouseX = 0, mouseY = 0,
-
 			windowHalfX = window.innerWidth / 2,
 			windowHalfY = window.innerHeight / 2,
-
 			camera, scene, renderer, material;
 
 			init();
 			animate();
 
 			function init() {
-
 				var i, container;
-
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
+				/*
+				透视相机
+				PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 33, window.innerWidth / window.innerHeight, 1, 10000 );
 				camera.position.z = 700;
 
 				scene = new THREE.Scene();
 
 				renderer = new THREE.CanvasRenderer();
+				//设置屏幕像素比，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
 				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
 				container.appendChild( renderer.domElement );
 
 				var geometry3 = new THREE.Geometry(),
-					points = hilbert3D( new THREE.Vector3( 0,0,0 ), 200.0, 2, 0, 1, 2, 3, 4, 5, 6, 7 ),
+					/*
+					希尔伯特曲线
+					hilbert3D
+					 * @param center     Center of Hilbert curve.
+					 * @param size       Total width of Hilbert curve.
+					 * @param iterations Number of subdivisions.
+								curve's count -> 4 ^ iterations 个首尾相连两边竖起的凹线
+					 * @param v0         Corner index -X, +Y, -Z. 从上矩形的第二象限开始，先以逆时针画左矩形，再连到右侧，以顺时针画右矩形
+					 * @param v1         Corner index -X, +Y, +Z.
+					 * @param v2         Corner index -X, -Y, +Z.
+					 * @param v3         Corner index -X, -Y, -Z.
+					 * @param v4         Corner index +X, -Y, -Z.
+					 * @param v5         Corner index +X, -Y, +Z.
+					 * @param v6         Corner index +X, +Y, +Z.
+					 * @param v7         Corner index +X, +Y, -Z.
+					 */
+					points = hilbert3D( new THREE.Vector3( 0,0,0 ), 200.0, 1, 0, 1, 2, 3, 4, 5, 6, 7 ),
 					colors3 = [];
 
+				geometry3.vertices = points;
 				for ( i = 0; i < points.length; i ++ ) {
-
-					geometry3.vertices.push( points[ i ] );
+					//geometry3.vertices.push( points[ i ] );
 
 					colors3[ i ] = new THREE.Color( 0xffffff );
+					//和canvas中设置HSL不同，这里的 色相(H)、饱和度(S)、明度(L) 范围均在 0.0 - 1.0
 					colors3[ i ].setHSL( i / points.length, 1.0, 0.5 );
-
 				}
 
 				geometry3.colors = colors3;
 
 				// lines
-
 				material = new THREE.LineBasicMaterial( { color: 0xffffff, opacity: 1, linewidth: 3, vertexColors: THREE.VertexColors } );
 
 				var line, p, scale = 0.3, d = 225;
 
+				/*
+				THREE.Line使用WebGL中的gl.LINE_STRIP(一系列的连续直线，即折线)渲染
+				THREE.LineSegments使用WebGL中的gl.LINES(每一对顶点被解释为一条直线，即线段)渲染
+				*/
 				line = new THREE.Line(geometry3, material );
+				//line = new THREE.LineSegments(geometry3, material );
 				line.scale.x = line.scale.y = line.scale.z =  scale*1.5;
-				line.position.x = 0;
-				line.position.y = 0;
-				line.position.z = 0;
+				//line.position.x = 0;
+				//line.position.y = 0;
+				//line.position.z = 0;
+				line.position.set(0,0,0);
 				scene.add( line );
 
-				//
-
+				//左上角的统计信息(FPS，渲染时间，chrome内存使用率)
 				stats = new Stats();
-				//container.appendChild( stats.dom );
+				//这里注意，统计插件的dom元素是"dom"，而不是domElement
+				container.appendChild( stats.dom );
 
-				//
-
+				/*
+                element.addEventListener(event, function, useCapture)
+                useCapture，可选。true：事件句柄在捕获阶段执行；false：默认，事件句柄在冒泡阶段执行
+                */
+                //mouse事件是针对PC浏览器的
 				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				//touch事件是针对手持设备的
 				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 				document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
-				//
-
 				window.addEventListener( 'resize', onWindowResize, false );
-
 			}
 
 			function onWindowResize() {
-
 				windowHalfX = window.innerWidth / 2;
 				windowHalfY = window.innerHeight / 2;
 
+				//重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
 				camera.aspect = window.innerWidth / window.innerHeight;
+				//更新透视相机的投影矩阵
 				camera.updateProjectionMatrix();
-
+				//更新待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
-
 			}
 
-			//
-
 			function onDocumentMouseMove( event ) {
-
+				/*
+                html的坐标轴是以左上角为(0,0)，右下方向为正方向
+                event.clientX=event.pageX返回当事件被触发时鼠标指针向对于浏览器可见区域的X坐标
+                event.offsetX返回当前事件相对于事件源元素（srcElement）的X坐标
+                event.screenX鼠标相对于用户显示器屏幕左上角的X坐标
+                */
 				mouseX = event.clientX - windowHalfX;
 				mouseY = event.clientY - windowHalfY;
-
 			}
 
 			function onDocumentTouchStart( event ) {
-
+				//event.touches存放的是多指触碰时的位置数组
 				if ( event.touches.length > 1 ) {
-
 					event.preventDefault();
 
 					mouseX = event.touches[ 0 ].pageX - windowHalfX;
 					mouseY = event.touches[ 0 ].pageY - windowHalfY;
-
 				}
-
 			}
 
 			function onDocumentTouchMove( event ) {
-
-				if ( event.touches.length == 1 ) {
-
+				//三个等号是恒等，比较数值的同时也比较类型。这里限制只有单指触摸的时候才执行相应的方法
+				if ( event.touches.length === 1 ) {
 					event.preventDefault();
 
 					mouseX = event.touches[ 0 ].pageX - windowHalfX;
 					mouseY = event.touches[ 0 ].pageY - windowHalfY;
 				}
-
 			}
 
-			//
-
 			function animate() {
-
 				requestAnimationFrame( animate );
 				render();
-
+				//这里可以在render前后使用stats.begin和stats.end，也可以在每次渲染的时候调用一次stats.update
 				stats.update();
-
 			}
 
 			function render() {
-
+				/*
+				将旋转的角度按右手螺旋定则更新到原旋转角上
+				rotation.y是绕Y轴旋转
+				rotation.y其实是关于mouseX一元一次线性函数
+				*/
 				camera.position.x += ( mouseX - camera.position.x ) * .05;
 				camera.position.y += ( - mouseY + 200 - camera.position.y ) * .05;
 
+				//相机注视场景中央
 				camera.lookAt( scene.position );
 
+				//Date.now()得到的是当前时间戳，单位毫秒
 				var time = Date.now() * 0.0005;
 
+				//场景中目前只有一个元素，就是hilbert曲线
 				for ( var i = 0; i < scene.children.length; i ++ ) {
-
 					var object = scene.children[ i ];
 					if ( object instanceof THREE.Line ) object.rotation.y = time * ( i % 2 ? 1 : -1 );
 
 				}
-
 				renderer.render(scene, camera );
-
 			}
-
 		</script>
 	</body>
 </html>
