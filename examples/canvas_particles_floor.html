@@ -104,9 +104,11 @@
 				}
 
 				renderer = new THREE.CanvasRenderer();
+				//设置屏幕像素比，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
 				renderer.setPixelRatio( window.devicePixelRatio );
 				//设置渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
 				container.appendChild( renderer.domElement );
 
 				//统计插件(FPS，渲染时间，chrome内存使用率)
@@ -135,7 +137,7 @@
                 camera.aspect = window.innerWidth / window.innerHeight;
                 //更新透视相机的投影矩阵
                 camera.updateProjectionMatrix();
-
+				//更新待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
 			}
 
@@ -156,7 +158,6 @@
                 这里限制只有多指触摸的时候才执行相应的方法
 				*/
 				if ( event.touches.length === 1 ) {
-
 					event.preventDefault();
 
 					mouseX = event.touches[ 0 ].pageX - windowHalfX;
@@ -166,7 +167,6 @@
 
 			function onDocumentTouchMove( event ) {
 				if ( event.touches.length == 1 ) {
-
 					event.preventDefault();
 
 					mouseX = event.touches[ 0 ].pageX - windowHalfX;

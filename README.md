@@ -17,6 +17,8 @@
 - [canvas_lines.html](examples/canvas_lines.html)
 - [canvas_lines_colors.html](examples/canvas_lines_colors.html)
 - [canvas_lines_colors_2d.html](examples/canvas_lines_colors_2d.html)
+- [canvas_lines_dashed.html](examples/canvas_lines_dashed.html)
+- [canvas_lines_sphere.html](examples/canvas_lines_sphere.html)
 - [canvas_materials_normal.html](examples/canvas_materials_normal.html)
 - [canvas_materials_reflection.html](examples/canvas_materials_reflection.html)
 - [canvas_particles_floor.html](examples/canvas_particles_floor.html)
@@ -42,7 +44,8 @@
 
 ## 当前批阅项
 - [webgl_lights_hemisphere.html](examples/webgl_lights_hemisphere.html)
-
+- [canvas_interactive_cubes.html](examples/canvas_interactive_cubes.html)
+- [canvas_geometry_text.html](examples/canvas_geometry_text.html)
 
 ***
 
@@ -89,10 +92,13 @@
 | MeshNormalMaterial	| 这是一种简单的材质，根据物体表面的法向量计算颜色 |
 | MeshFaceMaterial		| 这是一个容器，可以在这个容器里为物体的各个表面指定不同的颜色 |
 | MeshLambertMaterial	| 这种材质会考虑光照的影响，可以用来创建颜色暗淡的、不光亮的物体 |
-| MeshPhongMaterial		| 这种材质也会考虑光照的影响，而且可以用来创建光亮的物体 |
+| MeshStandardMaterial(原 MeshPhongMaterial) | 这种材质也会考虑光照的影响，而且可以用来创建光亮的物体 |
 | ShaderMaterial		| 这种材允许使用自定义的着色器程序，直接控制顶点的放置方式，以及像素的着色方式 |
 | LineBasicMaterial		| 这种材质可以用于THREE.Line(直线)几何体，从而创建着色的直线 }
 | LineDashedMaterial	| 这种材质跟直线基础材质一样，不过可以用来创建出一种虚线效果 |
+| SpriteMaterial		| Sprite(点精灵)的材质标准渲染器 |
+| SpriteCanvasMaterial  | 使用canvas渲染器的Sprite(点精灵)的材质 |
+} MultiMaterial			| 使用多种材质渲染同一物体 |
 
 ### 渲染器
 - WebGLRenderer
@@ -110,6 +116,7 @@ Canvas渲染器不使用WebGL展示制作的场景，而使用稍微慢一点的
 
 WebGL需要环境光否则是黑色的，其它两个即使没有环境光也能渲染出材质。
 对于粒子系统：CanvasRenderer只能显示THREE.Sprite(原Particle)，WebGLRenderer只能显示THREE.Points(原ParticleSystem)
+AxisHelper(坐标轴)只能在WebGLRenderer下显示，不能在CanvasRenderer下显示
 大部分情况下，WebGL、Canvas、Software这三种渲染器理论上可以相互替换。
 
 <br>另外，所使用的图片数据的大小必须是2的阶乘，横竖的像素长度大小必须是32x32，128x128等2的阶乘的形式。
@@ -217,7 +224,7 @@ THREE.LineSegments使用WebGL中的gl.LINES(每一对顶点被解释为一条直
 2. scene.fog = new THREE.Fog(color, concentration)
 第一个参数是雾化效果或者颜色(0xffffff)，第二个参数是雾的浓度(0.015)
 
-**范例:**
+**setClearColor，字体height就无效了范例:**
 - [webgl_geometry_terrain_fog.html](examples/webgl_geometry_terrain_fog.html)
 
 ### 样条曲线(CatmullRomCurve3)与贝赛尔曲线的区别(CubicBezierCurve、QuadraticBezier)
@@ -235,6 +242,7 @@ CR-Spline需要至少4个控制点，首尾两个控制点为辅助点，曲线�
 ### [canvas_materials_reflection.js](examples/js/cameras/canvas_materials_reflection.html)中texture.mapping为什么只能用SphericalReflectionMapping，其它碎片噪音哪里来的?
 ### [canvas_geometry_shapes.html](examples/canvas_geometry_shapes.html)中WebGLRenderer中的sortElements和sortObjects是怎么用的?
 ### [canvas_lines_dashed.html](examples/canvas_lines_dashed.html)中geometry.computeLineDistances()有什么用？LineDashedMaterial材质不计算
+### [canvas_geometry_text.html](examples/canvas_geometry_text.html)一旦删掉setClearColor，字体height就无效了
 
 ## 相关插件
 | 插件 | 功能 |

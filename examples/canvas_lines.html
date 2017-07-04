@@ -99,6 +99,8 @@
 				SpriteCanvasMaterial: 
 				Create a material that can draw custom sprites using a 2d canvas.
 				创建一个使用2d画布绘制的自定义精灵图材质
+				
+				材质color会在program之前被设置到context.fillStyle上。因此如果内部还有对fillStyle的设置，则可能会改变外部定义的color
 				*/
 				var material = new THREE.SpriteCanvasMaterial( {
 					/*
@@ -146,8 +148,8 @@
                 */
 				//mouse事件是针对PC浏览器的
 				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 				//touch事件是针对手持设备的
+				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 				document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
 				window.addEventListener( 'resize', onWindowResize, false );
@@ -175,7 +177,6 @@
                 */
 				mouseX = event.clientX - windowHalfX;
 				mouseY = event.clientY - windowHalfY;
-
 			}
 
 			function onDocumentTouchStart( event ) {

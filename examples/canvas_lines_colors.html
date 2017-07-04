@@ -231,14 +231,14 @@
 
 			function render() {
 				/*
-				将旋转的角度按右手螺旋定则更新到原旋转角上
-				rotation.y是绕Y轴旋转
-				rotation.y其实是关于mouseX一元一次线性函数
+				即如下两个公式，由于浏览器的X轴方向与WebGL的X轴方向相同，而Y轴方向相反，所以X用正的，而Y用负的
+				camera.position.x = camera.position.x * 0.95 + mouseX * 0.05;
+				camera.position.y = camera.position.y * 0.95 - mouseY * 0.05 + 10;
 				*/
 				camera.position.x += ( mouseX - camera.position.x ) * .05;
 				camera.position.y += ( - mouseY + 200 - camera.position.y ) * .05;
 
-				//相机注视场景中央
+				//相机重新注视场景中央，否则相机只会对着原lookAt计算出的向量方向
 				camera.lookAt( scene.position );
 
 				//Date.now()得到的是当前时间戳，单位毫秒

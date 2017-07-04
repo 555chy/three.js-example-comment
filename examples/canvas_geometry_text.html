@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js canvas - geometry - text</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -14,22 +18,25 @@
 		</style>
 	</head>
 	<body>
-
-
 		<script src="../build/three.js"></script>
 
+		<!--
+		想要使用CanvasRenderer，必须添加如下两个js文件 
+		Projector.js顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
+		THREE.Projector has been moved to /examples/js/renderers/Projector.js. three.js:42883:3
+		TypeError: THREE.RenderableVertex is not a constructor 
+		-->
 		<script src="js/renderers/Projector.js"></script>
 		<script src="js/renderers/CanvasRenderer.js"></script>
 
+		<!--
+		统计插件(FPS，渲染时间，chrome内存使用率)，min表示js代码经过压缩
+		-->
 		<script src="js/libs/stats.min.js"></script>
-
-
+		
 		<script>
-
 			var container, stats;
-
 			var camera, scene, renderer;
-
 			var group;
 
 			var targetRotation = 0;
@@ -42,15 +49,14 @@
 			var windowHalfY = window.innerHeight / 2;
 
 			var loader = new THREE.FontLoader();
+			
+			//该字体仅支持英文字符，非英文字符会显示为"?"
 			loader.load( 'fonts/helvetiker_regular.typeface.json', function ( font ) {
-
 				init( font );
 				animate();
-
 			} );
 
 			function init( font ) {
-
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
@@ -62,7 +68,18 @@
 				info.innerHTML = 'Simple Dynamic 3D Text Example by <a href="http://www.lab4games.net/zz85/blog">zz85</a><br>Drag to spin the text';
 				container.appendChild( info );
 
+				/*
+				透视相机
+                PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 1000 );
+				 //定义相机的位置，有如下两种方式。如果不设置的话，相机位置为默认的Vector3{x:0,y:0,z:0}
+                //camera.position.y = 150;
+                //camera.position.z = 500;
 				camera.position.set( 0, 150, 500 );
 
 				scene = new THREE.Scene();
@@ -71,27 +88,64 @@
 
 				var theText = "Hello three.js! :)";
 
+				/*
+				Location 对象包含有关当前 URL 的信息。
+				Location 对象是 Window 对象的一个部分，既可以通过window.location来访问，也可以通过document.location来访问。
+				location.hash 设置或返回从井号 (#) 开始的 URL（锚）
+				
+				使用锚点的三种方式：
+				1、在同一页面中
+				<a name="mao"></a><!-- 定义锚点 -->  
+				<a href="#mao">跳转到锚点mao</a>  
+				2、在不同也面中
+				<a href="test.html#mao">跳转到test.mao</a> 
+				3、js跳转
+				<div id="divNode"></div><!-- 待跳转的节点 -->
+				<a href="#" onclick="document.getElementById('divNode').scrollIntoView(true);return false;">通过scrollIntoView实现锚点效果</a>
+				*/
+				console.log(window.location);
+				console.log(document.location.hash);
+				/*
+				string.substring(start, end);
+				string.substr(start, len)
+				*/
 				var hash = document.location.hash.substr( 1 );
 
 				if ( hash.length !== 0 ) {
-
 					theText = hash;
-
 				}
 
+				/*
+				三维的文字形状
+				size：字号大小，一般为大写字母的高度
+				height：文字的厚度
+				curveSegments：弧线分段数，使得文字的曲线更加光滑。但是加载时间增加，FPS下降
+				font：字体，默认是'helvetiker'，需对应引用的字体文件
+				weight：值为'normal'或'bold'，表示是否加粗
+				style：值为'normal'或'italics'，表示是否斜体
+				bevelEnabled：布尔值，是否使用倒角，意为在边缘处斜切
+				bevelThickness：倒角厚度
+				bevelSize：倒角宽度
+				*/
 				var geometry = new THREE.TextGeometry( theText, {
-
 					font: font,
 					size: 80,
 					height: 20,
 					curveSegments: 2
-
 				});
 
+				//computeBoundingBox计算对象的立方体界限，computeBoundingSphere计算对象的球体界限
 				geometry.computeBoundingBox();
 
+				//三维文字的的中心是在它的左上角，所以这里需要通过包围盒来计算它的中心
 				var centerOffset = -0.5 * ( geometry.boundingBox.max.x - geometry.boundingBox.min.x );
 
+				/*
+				TextGeometry需要两个材质，如果只有一个的话，厚度会消失
+				第一个材质是字体材质，第二个材质是厚度材质
+				
+				 overdraw:过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+				*/
 				var material = new THREE.MultiMaterial( [
 					new THREE.MeshBasicMaterial( { color: Math.random() * 0xffffff, overdraw: 0.5 } ),
 					new THREE.MeshBasicMaterial( { color: 0x000000, overdraw: 0.5 } )
@@ -110,122 +164,128 @@
 				group.add( mesh );
 
 				scene.add( group );
-
+				
+				//尽量使用WebGLRender，因为它会使用GPU辅助计算，而普通的Canvas只会用到CPU
 				renderer = new THREE.CanvasRenderer();
-				renderer.setClearColor( 0xf0f0f0 );
-				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( window.innerWidth, window.innerHeight );
-				container.appendChild( renderer.domElement );
+                //renderer = new THREE.WebGLRenderer();
+                //设置渲染器的"清除色"和"透明度"
+                renderer.setClearColor( 0xf0f0f0 );
+                //设置屏幕像素比，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
+                renderer.setPixelRatio( window.devicePixelRatio );
+                //设置待渲染场景的大小
+                renderer.setSize( window.innerWidth, window.innerHeight );
+                //将渲染器的DOM元素(即Canvas)添加到HTML中
+                container.appendChild( renderer.domElement );
 
-				stats = new Stats();
-				container.appendChild( stats.dom );
+				//左上角的统计信息(FPS，渲染时间，chrome内存使用率)
+                stats = new Stats();
+				//这里注意，统计插件的dom元素是"dom"，而不是domElement
+                container.appendChild( stats.dom );
 
-				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+				/*
+                element.addEventListener(event, function, useCapture)
+                useCapture，可选。true：事件句柄在捕获阶段执行；false：默认，事件句柄在冒泡阶段执行
+                */
+                //mouse事件是针对PC浏览器的
+                document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+                //touch事件是针对手持设备的
 				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 				document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
-				//
-
 				window.addEventListener( 'resize', onWindowResize, false );
-
 			}
 
 			function onWindowResize() {
-
 				windowHalfX = window.innerWidth / 2;
-				windowHalfY = window.innerHeight / 2;
-
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-
-				renderer.setSize( window.innerWidth, window.innerHeight );
-
+                windowHalfY = window.innerHeight / 2;
+                 
+                //重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
+                camera.aspect = window.innerWidth / window.innerHeight;
+                //更新透视相机的投影矩阵
+                camera.updateProjectionMatrix();
+				//更新待渲染场景的大小
+                renderer.setSize( window.innerWidth, window.innerHeight );
 			}
 
-			//
-
 			function onDocumentMouseDown( event ) {
-
-				event.preventDefault();
-
+				 //通知 Web 浏览器不要执行与事件关联的默认动作(如果存在这样的动作)
+                event.preventDefault();
+ 
+                //在mousedown的时候动态绑定事件
 				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 				document.addEventListener( 'mouseup', onDocumentMouseUp, false );
 				document.addEventListener( 'mouseout', onDocumentMouseOut, false );
 
 				mouseXOnMouseDown = event.clientX - windowHalfX;
 				targetRotationOnMouseDown = targetRotation;
-
 			}
 
 			function onDocumentMouseMove( event ) {
-
+				/*
+                html的坐标轴是以左上角为(0,0)，右下方向为正方向
+                event.clientX=event.pageX返回当事件被触发时鼠标指针向对于浏览器可见区域的X坐标
+                event.offsetX返回当前事件相对于事件源元素（srcElement）的X坐标
+                event.screenX鼠标相对于用户显示器屏幕左上角的X坐标
+                */
 				mouseX = event.clientX - windowHalfX;
-
+				//每一次旋转都从mousedown的角度开始计算
 				targetRotation = targetRotationOnMouseDown + ( mouseX - mouseXOnMouseDown ) * 0.02;
-
 			}
 
 			function onDocumentMouseUp( event ) {
-
+				//在放开鼠标的时候解绑定相应事件
 				document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
 				document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
 				document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
-
 			}
 
 			function onDocumentMouseOut( event ) {
-
+				//在鼠标移出该区域的时候解除相应的事件绑定
 				document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
 				document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
 				document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
-
 			}
 
 			function onDocumentTouchStart( event ) {
-
-				if ( event.touches.length == 1 ) {
-
+				/*
+				event.touches存放的是多指触碰时的位置数组
+				三个等号是恒等，比较数值的同时也比较类型。
+                这里限制只有单指触摸的时候才执行相应的方法
+				*/
+				if ( event.touches.length === 1 ) {
 					event.preventDefault();
 
 					mouseXOnMouseDown = event.touches[ 0 ].pageX - windowHalfX;
 					targetRotationOnMouseDown = targetRotation;
-
 				}
-
 			}
 
 			function onDocumentTouchMove( event ) {
-
-				if ( event.touches.length == 1 ) {
-
+				if ( event.touches.length === 1 ) {
 					event.preventDefault();
 
 					mouseX = event.touches[ 0 ].pageX - windowHalfX;
 					targetRotation = targetRotationOnMouseDown + ( mouseX - mouseXOnMouseDown ) * 0.05;
-
 				}
-
 			}
 
-			//
-
 			function animate() {
-
 				requestAnimationFrame( animate );
 
 				render();
+				//这里可以在render前后使用stats.begin和stats.end，也可以在每次渲染的时候调用一次stats.update
 				stats.update();
-
 			}
 
 			function render() {
-
+				/*
+				将旋转的角度按右手螺旋定则更新到原旋转角上
+				rotation.y是绕Y轴旋转
+				rotation.y其实是关于mouseX一元一次线性函数
+				*/
 				group.rotation.y += ( targetRotation - group.rotation.y ) * 0.05;
 				renderer.render( scene, camera );
-
 			}
-
 		</script>
-
 	</body>
 </html>

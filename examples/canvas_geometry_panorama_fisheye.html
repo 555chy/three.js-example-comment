@@ -163,6 +163,7 @@
 				//由于不是从canvas中获取图片，用canvas来初始化就显得很没道理
 				//var texture = new THREE.Texture( texture_placeholder );
 				var texture = new THREE.Texture();
+				//overdraw:过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
 				var material = new THREE.MeshBasicMaterial( { map: texture, overdraw: 0.5 } );
 				var image = new Image();
 				image.onload = function () {
@@ -213,8 +214,12 @@
 			}
 
 			function onDocumentTouchStart( event ) {
-				//仅支持单指触摸
-				if ( event.touches.length == 1 ) {
+				/*
+				event.touches存放的是多指触碰时的位置数组
+				三个等号是恒等，比较数值的同时也比较类型。
+                这里限制只有单指触摸的时候才执行相应的方法
+				*/
+				if ( event.touches.length === 1 ) {
 					event.preventDefault();
 					onPointerDownPointerX = event.touches[ 0 ].pageX;
 					onPointerDownPointerY = event.touches[ 0 ].pageY;

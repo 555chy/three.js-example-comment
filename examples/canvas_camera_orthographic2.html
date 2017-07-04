@@ -159,6 +159,7 @@
 
 				// Cubes
 				var geometry = new THREE.BoxGeometry( 50, 50, 50 );
+				//overdraw:过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
 				var material = new THREE.MeshLambertMaterial( { color: 0xffffff, overdraw: 0.5 } );
 
 				for ( var i = 0; i < 100; i ++ ) {

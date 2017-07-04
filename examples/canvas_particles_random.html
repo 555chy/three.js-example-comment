@@ -72,13 +72,11 @@
 
 				var PI2 = Math.PI * 2;
 				var program = function ( context ) {
-
 					context.beginPath();
 					//圆心在(0,0)，半径为0.5的整圆
 					context.arc( 0, 0, 0.5, 0, PI2, true );
 					//这里会使用之前设置的画笔颜色进行填充。而画笔颜色不一定要在本函数中进行设置
 					context.fill();
-
 				};
 				
 				//three.js中的分组，同一个分组中的对象可以一起执行某项操作，不用再进行遍历判断

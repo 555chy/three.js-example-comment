@@ -194,14 +194,14 @@
             }
  
             function onDocumentMouseUp( event ) {
-                //在mouseUp的时候解绑定相应事件
+                //在放开鼠标的时候解绑定相应事件
                 document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
                 document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
                 document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
             }
  
             function onDocumentMouseOut( event ) {
-                //鼠标移出该区域的时候解除相应的事件绑定
+                //在鼠标移出该区域的时候解除相应的事件绑定
                 document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
                 document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
                 document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
