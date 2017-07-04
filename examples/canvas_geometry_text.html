@@ -144,7 +144,7 @@
 				TextGeometry需要两个材质，如果只有一个的话，厚度会消失
 				第一个材质是字体材质，第二个材质是厚度材质
 				
-				 overdraw:过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+				overdraw:过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
 				*/
 				var material = new THREE.MultiMaterial( [
 					new THREE.MeshBasicMaterial( { color: Math.random() * 0xffffff, overdraw: 0.5 } ),

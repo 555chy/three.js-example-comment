@@ -10,14 +10,12 @@
 				margin: 0px;
 				overflow: hidden;
 			}
-
 			a {
 				color: #0078ff;
 			}
 		</style>
 	</head>
 	<body>
-
 		<script src="../build/three.js"></script>
 
 		<script src="js/renderers/Projector.js"></script>
@@ -27,7 +25,6 @@
 		<script src="js/libs/tween.min.js"></script>
 
 		<script>
-
 			var container, stats;
 			var camera, scene, renderer, particle;
 			var mouseX = 0, mouseY = 0;
@@ -39,7 +36,6 @@
 			animate();
 
 			function init() {
-
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
@@ -54,11 +50,8 @@
 				} );
 
 				for ( var i = 0; i < 1000; i++ ) {
-
 					particle = new THREE.Sprite( material );
-
 					initParticle( particle, i * 10 );
-
 					scene.add( particle );
 				}
 
@@ -75,14 +68,10 @@
 				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 				document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
-				//
-
 				window.addEventListener( 'resize', onWindowResize, false );
-
 			}
 
 			function onWindowResize() {
-
 				windowHalfX = window.innerWidth / 2;
 				windowHalfY = window.innerHeight / 2;
 
@@ -90,11 +79,9 @@
 				camera.updateProjectionMatrix();
 
 				renderer.setSize( window.innerWidth, window.innerHeight );
-
 			}
 
 			function generateSprite() {
-
 				var canvas = document.createElement( 'canvas' );
 				canvas.width = 16;
 				canvas.height = 16;
@@ -110,15 +97,14 @@
 				context.fillRect( 0, 0, canvas.width, canvas.height );
 
 				return canvas;
-
 			}
 
 			function initParticle( particle, delay ) {
-
 				var particle = this instanceof THREE.Sprite ? this : particle;
 				var delay = delay !== undefined ? delay : 0;
 
 				particle.position.set( 0, 0, 0 );
+				
 				particle.scale.x = particle.scale.y = Math.random() * 32 + 16;
 
 				new TWEEN.Tween( particle )
@@ -136,66 +122,54 @@
 					.delay( delay )
 					.to( { x: 0.01, y: 0.01 }, 10000 )
 					.start();
-
 			}
 
-			//
-
 			function onDocumentMouseMove( event ) {
-
 				mouseX = event.clientX - windowHalfX;
 				mouseY = event.clientY - windowHalfY;
 			}
 
 			function onDocumentTouchStart( event ) {
-
 				if ( event.touches.length == 1 ) {
-
 					event.preventDefault();
 
 					mouseX = event.touches[ 0 ].pageX - windowHalfX;
 					mouseY = event.touches[ 0 ].pageY - windowHalfY;
-
 				}
-
 			}
 
 			function onDocumentTouchMove( event ) {
-
 				if ( event.touches.length == 1 ) {
-
 					event.preventDefault();
 
 					mouseX = event.touches[ 0 ].pageX - windowHalfX;
 					mouseY = event.touches[ 0 ].pageY - windowHalfY;
-
 				}
-
 			}
 
-			//
-
 			function animate() {
-
 				requestAnimationFrame( animate );
 
 				render();
 				stats.update();
-
 			}
 
 			function render() {
-
 				TWEEN.update();
-
+				/*
+				即如下两个公式，由于浏览器的X轴方向与WebGL的X轴方向相同，而Y轴方向相反，所以X用正的，而Y用负的
+				camera.position.x = camera.position.x * .95 + mouseX * .05;
+				camera.position.y = camera.position.y * .95 - mouseY * .05;
+				=》
+				camera.position.x = mouseX;
+				camera.position.y = -mouseY;
+				*/
 				camera.position.x += ( mouseX - camera.position.x ) * 0.05;
 				camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
 				camera.lookAt( scene.position );
 
 				renderer.render( scene, camera );
-
 			}
-
 		</script>
 	</body>
 </html>

@@ -13,6 +13,7 @@
 - [canvas_geometry_hierarchy.html](examples/canvas_geometry_hierarchy.html)
 - [canvas_geometry_panorama.html](examples/canvas_geometry_panorama.html)
 - [canvas_geometry_panorama_fisheye.html](examples/canvas_geometry_panorama_fisheye.html)
+- [canvas_geometry_text.html](examples/canvas_geometry_text.html)
 - [canvas_geometry_shapes.html](examples/canvas_geometry_shapes.html)
 - [canvas_lines.html](examples/canvas_lines.html)
 - [canvas_lines_colors.html](examples/canvas_lines_colors.html)
@@ -21,6 +22,7 @@
 - [canvas_lines_sphere.html](examples/canvas_lines_sphere.html)
 - [canvas_materials_normal.html](examples/canvas_materials_normal.html)
 - [canvas_materials_reflection.html](examples/canvas_materials_reflection.html)
+- [canvas_materials_video.html](examples/canvas_materials_video.html)
 - [canvas_particles_floor.html](examples/canvas_particles_floor.html)
 - [canvas_particles_random.html](examples/canvas_particles_random.html)
 
@@ -45,7 +47,6 @@
 ## 当前批阅项
 - [webgl_lights_hemisphere.html](examples/webgl_lights_hemisphere.html)
 - [canvas_interactive_cubes.html](examples/canvas_interactive_cubes.html)
-- [canvas_geometry_text.html](examples/canvas_geometry_text.html)
 
 ***
 
@@ -116,6 +117,7 @@ Canvas渲染器不使用WebGL展示制作的场景，而使用稍微慢一点的
 
 WebGL需要环境光否则是黑色的，其它两个即使没有环境光也能渲染出材质。
 对于粒子系统：CanvasRenderer只能显示THREE.Sprite(原Particle)，WebGLRenderer只能显示THREE.Points(原ParticleSystem)
+Sprite和Points都是始终面朝相机的2D图形
 AxisHelper(坐标轴)只能在WebGLRenderer下显示，不能在CanvasRenderer下显示
 大部分情况下，WebGL、Canvas、Software这三种渲染器理论上可以相互替换。
 

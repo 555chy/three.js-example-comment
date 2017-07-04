@@ -73,7 +73,9 @@
 				
 				//绘制用于测试的材质
 				var testCanvas = document.getElementById("testCanvas");
-				testCanvas.getContext("2d").drawImage(texture.image,0,0,texture.image.width,texture.image.height);
+				//在画布上绘制图片时，绘制宽高默认为画图片的宽高
+				//testCanvas.getContext("2d").drawImage(texture.image,0,0,texture.image.width,texture.image.height);
+				testCanvas.getContext("2d").drawImage(texture.image,0,0);
 				
 				for ( var i = 0; i < 15; i ++ ) {
 					var material;

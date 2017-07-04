@@ -28,7 +28,6 @@
 	</head>
 	<body>
 		<script src="../build/three.js"></script>
-
 		<!--
 		想要使用CanvasRenderer，必须添加如下两个js文件 
 		Projector.js顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
@@ -73,11 +72,10 @@
                     far(远面)：定义相机可以从它所处的位置看多远。默认值1000
                 */
 				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
-				//设置相机的位置，有两种方式
+				//定义相机的位置，有如下两种方式。如果不设置的话，相机位置为默认的Vector3{x:0,y:0,z:0}
 				//camera.position.z = 1000;
 				camera.position.set(0,0,1000);
 
-				//场景
 				scene = new THREE.Scene();
 
 				/*
@@ -183,10 +181,13 @@
 			}
 
 			function render() {
-			/*
+				/*
 				即如下两个公式，由于浏览器的X轴方向与WebGL的X轴方向相同，而Y轴方向相反，所以X用正的，而Y用负的
 				camera.position.x = camera.position.x * .95 + mouseX * .05;
 				camera.position.y = camera.position.y * .95 - mouseY * .05;
+				=》
+				camera.position.x = mouseX;
+				camera.position.y = -mouseY;
 				*/
 				camera.position.x += ( mouseX - camera.position.x ) * .05;
 				camera.position.y += ( - mouseY - camera.position.y ) * .05;

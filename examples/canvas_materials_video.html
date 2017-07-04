@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js canvas - materials - video</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -14,36 +18,63 @@
 		</style>
 	</head>
 	<body>
-
 		<script src="../build/three.js"></script>
-
+		
+		<!--
+		想要使用CanvasRenderer，必须添加如下两个js文件 
+		Projector.js顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
+		THREE.Projector has been moved to /examples/js/renderers/Projector.js. three.js:42883:3
+		TypeError: THREE.RenderableVertex is not a constructor 
+		-->
 		<script src="js/renderers/Projector.js"></script>
 		<script src="js/renderers/CanvasRenderer.js"></script>
 
+		<!--
+		统计插件(FPS，渲染时间，chrome内存使用率)，min表示js代码经过压缩
+		-->
 		<script src="js/libs/stats.min.js"></script>
-
+		
+		<!--
+		可以在video开始和结束标签之间放置文本内容，这样老的浏览器就可以显示出不支持该标签的信息。
+		video 元素允许多个 source 元素。source 元素可以链接不同的视频文件。浏览器将使用第一个可识别的格式
+		
+		type 规定要检测的音频/视频类型(非必填属性)
+		常用值(编码器可以省略)：
+		video/ogg
+		video/mp4
+		video/webm
+		audio/mpeg
+		audio/ogg
+		audio/mp4
+		常用值，包括编解码器：
+		video/ogg; codecs="theora, vorbis"
+		video/mp4; codecs="avc1.4D401E, mp4a.40.2"
+		video/webm; codecs="vp8.0, vorbis"
+		audio/ogg; codecs="vorbis"
+		audio/mp4; codecs="mp4a.40.5"
+		
+		audio|video.canPlayType() 方法浏览器是否能播放指定的音频/视频类型，返回下列值之一：
+		"probably" - 浏览器最可能支持该音频/视频类型
+		"maybe" - 浏览器也许支持该音频/视频类型
+		"" - （空字符串）浏览器不支持该音频/视频类型
+		
+		通过查看文件属性可以发现，该视频帧长00:00:52，帧宽度480，帧高度204，数据速率410kbps，总比特率509kbps，帧速率24帧/秒
+		-->
 		<video id="video" autoplay loop webkit-playsinline style="display:none">
 			<source src="textures/sintel.mp4" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
 			<source src="textures/sintel.ogv" type='video/ogg; codecs="theora, vorbis"'>
 		</video>
-
+		
 		<script>
-
-			var AMOUNT = 100;
-
 			var container, stats;
-
 			var camera, scene, renderer;
-
 			var video, image, imageContext,
 			imageReflection, imageReflectionContext, imageReflectionGradient,
 			texture, textureReflection;
 
 			var mesh;
-
 			var mouseX = 0;
 			var mouseY = 0;
-
 			var windowHalfX = window.innerWidth / 2;
 			var windowHalfY = window.innerHeight / 2;
 
@@ -51,11 +82,11 @@
 			animate();
 
 			function init() {
-
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
 				var info = document.createElement( 'div' );
+				//div原始width='100%'，但是只要将它的position='absolute'，它的width就会变为内容大小了
 				info.style.position = 'absolute';
 				info.style.top = '10px';
 				info.style.width = '100%';
@@ -63,25 +94,34 @@
 				info.innerHTML = '<a href="http://threejs.org" target="_blank">three.js</a> - video demo. playing <a href="http://durian.blender.org/" target="_blank">sintel</a> trailer';
 				container.appendChild( info );
 
+				/*
+				透视相机
+                PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+				//定义相机的位置，有如下两种方式。如果不设置的话，相机位置为默认的Vector3{x:0,y:0,z:0}
 				camera.position.z = 1000;
+				//camera.position.set(0,0,1000);
 
 				scene = new THREE.Scene();
 
 				video = document.getElementById( 'video' );
 
-				//
-
 				image = document.createElement( 'canvas' );
 				image.width = 480;
 				image.height = 204;
-
+				
 				imageContext = image.getContext( '2d' );
 				imageContext.fillStyle = '#000000';
 				imageContext.fillRect( 0, 0, 480, 204 );
 
 				texture = new THREE.Texture( image );
 
+				//overdraw:过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
 				var material = new THREE.MeshBasicMaterial( { map: texture, overdraw: 0.5 } );
 
 				imageReflection = document.createElement( 'canvas' );
@@ -92,135 +132,165 @@
 				imageReflectionContext.fillStyle = '#000000';
 				imageReflectionContext.fillRect( 0, 0, 480, 204 );
 
+				// createLinearGradient(线性渐变)，createRadialGradient(中心渐变)
 				imageReflectionGradient = imageReflectionContext.createLinearGradient( 0, 0, 0, 204 );
 				imageReflectionGradient.addColorStop( 0.2, 'rgba(240, 240, 240, 1)' );
 				imageReflectionGradient.addColorStop( 1, 'rgba(240, 240, 240, 0.8)' );
 
+				//使用画布初始纹理
 				textureReflection = new THREE.Texture( imageReflection );
 
+				/*
+				side 可选值为 FrontSide(默认)，BackSide，DoubleSide
+				无论side是正面还是反面，map(纹理)都是按正面来渲染。如果是BackSide的话，该纹理只能从后面才能看到
+				*/
 				var materialReflection = new THREE.MeshBasicMaterial( { map: textureReflection, side: THREE.BackSide, overdraw: 0.5 } );
 
-				//
-
+				//PlaneGeometry(width, height, widthSegments, heightSegments)
 				var plane = new THREE.PlaneGeometry( 480, 204, 4, 4 );
 
+				//显示视频的网格
 				mesh = new THREE.Mesh( plane, material );
 				mesh.scale.x = mesh.scale.y = mesh.scale.z = 1.5;
 				scene.add(mesh);
-
+				
+				// 显示视频镜像的网格
 				mesh = new THREE.Mesh( plane, materialReflection );
+				//网格根据网格中心定位，由于原网格被放大1.5倍，因此需要下移height*1.5的距离
 				mesh.position.y = -306;
+				//绕X轴旋转180度可以使两幅图像相对X轴"镜像对称"
 				mesh.rotation.x = - Math.PI;
 				mesh.scale.x = mesh.scale.y = mesh.scale.z = 1.5;
 				scene.add( mesh );
 
-				//
-
 				var separation = 150;
 				var amountx = 10;
 				var amounty = 10;
-
 				var PI2 = Math.PI * 2;
-				var material = new THREE.SpriteCanvasMaterial( {
+				/*
+				雪碧图材质，也叫精灵图
 
+				CSS Sprites其实就是把网页中一些背景图片整合到一张图片文件中，再利用CSS的“background-image”，“background- repeat”，“background-position”的组合进行背景定位，background-position可以用数字精确的定位出背景图片的位置。
+
+				在Three.js中意思有点稍微不一样
+				A sprite is a plane that always faces towards the camera, generally with a partially transparent texture applied.
+				Sprites do not cast shadows, setting castShadow = true will have no effect. 
+				一个精灵也就是一个平面，它的面总是朝向相机，通常来说会采用一个部分透明的纹理
+				精灵不能投影出阴影，设置 castShadow = true 没有任何效果
+
+				SpriteCanvasMaterial: 
+				Create a material that can draw custom sprites using a 2d canvas.
+				创建一个使用2d画布绘制的自定义精灵图材质
+				
+				材质color会在program之前被设置到context.fillStyle上。因此如果内部还有对fillStyle的设置，则可能会改变外部定义的color
+				*/
+				var material = new THREE.SpriteCanvasMaterial( {
 					color: 0x0808080,
 					program: function ( context ) {
-
 						context.beginPath();
 						context.arc( 0, 0, 0.5, 0, PI2, true );
 						context.fill();
-
 					}
-
 				} );
 
+				//在视频底部的平面上均匀地铺上点阵
 				for ( var ix = 0; ix < amountx; ix++ ) {
-
 					for ( var iy = 0; iy < amounty; iy++ ) {
-
 						particle = new THREE.Sprite( material );
 						particle.position.x = ix * separation - ( ( amountx * separation ) / 2 );
 						particle.position.y = -153;
 						particle.position.z = iy * separation - ( ( amounty * separation ) / 2 );
-						particle.scale.x = particle.scale.y = 2;
+						//粒子的大小放大为原来的两倍。注意Sprite是一个2D图像，所以不存在Z轴方向上的大小，以下两个方法等价
+						//particle.scale.multiplyScalar( 2 );
+						particle.scale.x = particle.scale.y = 12;
 						scene.add( particle );
-
 					}
-
 				}
 
 				renderer = new THREE.CanvasRenderer();
+				//设置渲染器的"清除色"和"透明度"
 				renderer.setClearColor( 0xf0f0f0 );
+				//设置屏幕像素比，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
 				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
 				container.appendChild( renderer.domElement );
 
+				//左上角的统计信息(FPS，渲染时间，chrome内存使用率)
 				stats = new Stats();
+				//这里注意，统计插件的dom元素是"dom"，而不是domElement
 				container.appendChild( stats.dom );
 
 				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 
-				//
-
 				window.addEventListener( 'resize', onWindowResize, false );
-
 			}
 
 			function onWindowResize() {
-
 				windowHalfX = window.innerWidth / 2;
 				windowHalfY = window.innerHeight / 2;
 
+				//重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
 				camera.aspect = window.innerWidth / window.innerHeight;
+				//更新透视相机的投影矩阵
 				camera.updateProjectionMatrix();
-
+				//更新待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
-
 			}
 
 			function onDocumentMouseMove( event ) {
-
 				mouseX = ( event.clientX - windowHalfX );
 				mouseY = ( event.clientY - windowHalfY ) * 0.2;
-
 			}
 
-			//
-
 			function animate() {
-
 				requestAnimationFrame( animate );
 
 				render();
+				//这里可以在render前后使用stats.begin和stats.end，也可以在每次渲染的时候调用一次stats.update
 				stats.update();
-
 			}
 
 			function render() {
-
+				/*
+				即如下两个公式，由于浏览器的X轴方向与WebGL的X轴方向相同，而Y轴方向相反，所以X用正的，而Y用负的
+				camera.position.x = camera.position.x * .95 + mouseX * .05;
+				camera.position.y = camera.position.y * .95 - mouseY * .05;
+				=》
+				camera.position.x = mouseX;
+				camera.position.y = -mouseY;
+				*/
 				camera.position.x += ( mouseX - camera.position.x ) * 0.05;
 				camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
+				//相机重新注视场景中央，否则相机只会对着原lookAt计算出的向量方向
 				camera.lookAt( scene.position );
 
+				/*
+				表示音频/视频元素的就绪状态：
+				0 = HAVE_NOTHING - 没有关于音频/视频是否就绪的信息
+				1 = HAVE_METADATA - 关于音频/视频就绪的元数据
+				2 = HAVE_CURRENT_DATA - 关于当前播放位置的数据是可用的，但没有足够的数据来播放下一帧/毫秒
+				3 = HAVE_FUTURE_DATA - 当前及至少下一帧的数据是可用的
+				4 = HAVE_ENOUGH_DATA - 可用数据足以开始播放
+				*/
+				//根据打印可以看出基本走势是：0-1-4-4...(循环播放)-1-4-4...
+				//console.log(video.readyState );
 				if ( video.readyState === video.HAVE_ENOUGH_DATA ) {
-
 					imageContext.drawImage( video, 0, 0 );
 
+					//一旦检测到needsUpdate=true，three.js就会使用_gl.texImage2D将空的纹理数据传输到显存中，然后就将这个标志位设成false，实现更新网格材质的效果
 					if ( texture ) texture.needsUpdate = true;
 					if ( textureReflection ) textureReflection.needsUpdate = true;
-
 				}
 
+				//在画布上绘制图片时，绘制宽高默认为画图片的宽高
 				imageReflectionContext.drawImage( image, 0, 0 );
 				imageReflectionContext.fillStyle = imageReflectionGradient;
 				imageReflectionContext.fillRect( 0, 0, 480, 204 );
 
 				renderer.render( scene, camera );
-
 			}
-
-
 		</script>
-
 	</body>
 </html>

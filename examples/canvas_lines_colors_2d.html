@@ -231,8 +231,11 @@
 			function render() {
 				/*
 				即如下两个公式，由于浏览器的X轴方向与WebGL的X轴方向相同，而Y轴方向相反，所以X用正的，而Y用负的
-				camera.position.x = camera.position.x * 0.95 + mouseX * 0.05;
-				camera.position.y = camera.position.y * 0.95 - mouseY * 0.05 + 10;
+				camera.position.x = camera.position.x * .95 + mouseX * .05;
+				camera.position.y = camera.position.y * .95 - mouseY * .05;
+				=》
+				camera.position.x = mouseX;
+				camera.position.y = -mouseY;
 				*/
 				camera.position.x += ( mouseX - camera.position.x ) * .05;
 				camera.position.y += ( - mouseY + 200 - camera.position.y ) * .05;
