@@ -188,6 +188,7 @@
 
 			function onDocumentTouchStart( event ) {
 				if ( event.touches.length > 1 ) {
+					//通知 Web 浏览器不要执行与事件关联的默认动作(如果存在这样的动作)
 					event.preventDefault();
 
 					mouseX = event.touches[ 0 ].pageX - windowHalfX;

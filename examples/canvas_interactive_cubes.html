@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js canvas - interactive - cubes</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -34,10 +38,8 @@
 			var container, stats;
 			var camera, scene, renderer;
 			var particleMaterial;
-
 			var raycaster;
 			var mouse;
-
 			var objects = [];
 
 			init();
@@ -55,7 +57,18 @@
 				info.innerHTML = '<a href="http://threejs.org" target="_blank">three.js</a> - clickable objects';
 				container.appendChild( info );
 
+				/*
+				透视相机
+                PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
+				//定义相机的位置，有如下两种方式。如果不设置的话，相机位置为默认的Vector3{x:0,y:0,z:0}
+                //camera.position.y = 300;
+                //camera.position.z = 500;
 				camera.position.set( 0, 300, 500 );
 
 				scene = new THREE.Scene();
@@ -78,10 +91,28 @@
 
 					scene.add( object );
 
+					//将所有网格对象添加到一个数组中
 					objects.push( object );
 				}
 
 				var PI2 = Math.PI * 2;
+				/*
+				雪碧图材质，也叫精灵图
+
+				CSS Sprites其实就是把网页中一些背景图片整合到一张图片文件中，再利用CSS的“background-image”，“background- repeat”，“background-position”的组合进行背景定位，background-position可以用数字精确的定位出背景图片的位置。
+
+				在Three.js中意思有点稍微不一样
+				A sprite is a plane that always faces towards the camera, generally with a partially transparent texture applied.
+				Sprites do not cast shadows, setting castShadow = true will have no effect. 
+				一个精灵也就是一个平面，它的面总是朝向相机，通常来说会采用一个部分透明的纹理
+				精灵不能投影出阴影，设置 castShadow = true 没有任何效果
+
+				SpriteCanvasMaterial: 
+				Create a material that can draw custom sprites using a 2d canvas.
+				创建一个使用2d画布绘制的自定义精灵图材质
+				
+				材质color会在program之前被设置到context.fillStyle上。因此如果内部还有对fillStyle的设置，则可能会改变外部定义的color
+				*/
 				particleMaterial = new THREE.SpriteCanvasMaterial( {
 					color: 0x000000,
 					program: function ( context ) {
@@ -91,34 +122,56 @@
 					}
 				} );
 
+				//射线
 				raycaster = new THREE.Raycaster();
 				mouse = new THREE.Vector2();
 
 				renderer = new THREE.CanvasRenderer();
+				//设置渲染器的"清除色"和"透明度"
 				renderer.setClearColor( 0xf0f0f0 );
+				//设置屏幕像素比，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
 				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
 				container.appendChild( renderer.domElement );
 
-				stats = new Stats();
-				container.appendChild( stats.dom );
+				//左上角的统计信息(FPS，渲染时间，chrome内存使用率)
+                stats = new Stats();
+				//这里注意，统计插件的dom元素是"dom"，而不是domElement
+                container.appendChild( stats.dom );
 
+				/*
+                element.addEventListener(event, function, useCapture)
+                useCapture，可选。true：事件句柄在捕获阶段执行；false：默认，事件句柄在冒泡阶段执行
+                */
+				//mouse事件是针对PC浏览器的
 				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+				//touch事件是针对手持设备的
 				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 
 				window.addEventListener( 'resize', onWindowResize, false );
 			}
 
 			function onWindowResize() {
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-
-				renderer.setSize( window.innerWidth, window.innerHeight );
+				//重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
+                camera.aspect = window.innerWidth / window.innerHeight;
+                //更新透视相机的投影矩阵
+                camera.updateProjectionMatrix();
+				//更新待渲染场景的大小
+                renderer.setSize( window.innerWidth, window.innerHeight );
 			}
 
 			function onDocumentTouchStart( event ) {
+				//通知 Web 浏览器不要执行与事件关联的默认动作(如果存在这样的动作)
 				event.preventDefault();
 
+				/*
+                html的坐标轴是以左上角为(0,0)，右下方向为正方向
+                event.clientX=event.pageX返回当事件被触发时鼠标指针向对于浏览器可见区域的X坐标
+                event.offsetX返回当前事件相对于事件源元素（srcElement）的X坐标
+                event.screenX鼠标相对于用户显示器屏幕左上角的X坐标
+                */
 				event.clientX = event.touches[0].clientX;
 				event.clientY = event.touches[0].clientY;
 				onDocumentMouseDown( event );
@@ -127,34 +180,55 @@
 			function onDocumentMouseDown( event ) {
 				event.preventDefault();
 
+				/*
+				mouse.x = (2 * event.clientX - renderer.domElement.clientWidth) / renderer.domElement.clientWidth
+				mouse.y = (renderer.domElement.clientHeight - 2 * event.clientY) / renderer.domElement.clientHeight
+				鼠标位置在一个边长为2的正方形内部，正方形中心为(0,0)点
+				因此，mouse.x和mouse.y的取值范围是[-1,1]
+				*/
 				mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
 				mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
 
+				//设置该射线从相机位置发出，射向视场的鼠标位置
 				raycaster.setFromCamera( mouse, camera );
 
+				//判断射线是否穿过这些物体，参数是数组。返回的是与射线相交的结果数组，按距离从近到远有序排列
 				var intersects = raycaster.intersectObjects( objects );
 
 				if ( intersects.length > 0 ) {
-					intersects[ 0 ].object.material.color.setHex( Math.random() * 0xffffff );
+					/*
+					intersects[ 0 ] {
+						distance: double
+						face: Face3
+						faceIndex: int
+						object: Mesh
+						point: Vector3
+						uv: Vector2
+						__proto__: Object
+					}
+					*/
+					//intersects[ 0 ].object.material.color.setHex( Math.random() * 0xffffff );
 
 					var particle = new THREE.Sprite( particleMaterial );
+					//vector3不能直接用"等号"赋值。只能用copy进行复制。set方法需要分别传递x,y,z三个标量
 					particle.position.copy( intersects[ 0 ].point );
 					particle.scale.x = particle.scale.y = 16;
 					scene.add( particle );
 				}
 
-				/*
 				// Parse all the faces
 				for ( var i in intersects ) {
-					intersects[ i ].face.material[ 0 ].color.setHex( Math.random() * 0xffffff | 0x80000000 );
+					//这句已经无效了，因为face下面不存在material，face下存在color，但是即使改变color也改变不了面的颜色
+					//intersects[ i ].face.material[ 0 ].color.setHex( Math.random() * 0xffffff | 0x80000000 );
+					intersects[ i ].object.material.color.setHex( Math.random() * 0xffffff );
 				}
-				*/
 			}
 
 			function animate() {
 				requestAnimationFrame( animate );
 
 				render();
+				//这里可以在render前后使用stats.begin和stats.end，也可以在每次渲染的时候调用一次stats.update
 				stats.update();
 			}
 
@@ -163,10 +237,11 @@
 
 			function render() {
 				theta += 0.1;
-
+				//THREE.Math.degToRad是将角度转换为弧度
 				camera.position.x = radius * Math.sin( THREE.Math.degToRad( theta ) );
 				camera.position.y = radius * Math.sin( THREE.Math.degToRad( theta ) );
 				camera.position.z = radius * Math.cos( THREE.Math.degToRad( theta ) );
+				//调整相机视角，对着场景中央
 				camera.lookAt( scene.position );
 
 				renderer.render( scene, camera );

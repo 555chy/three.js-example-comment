@@ -200,6 +200,7 @@
 				for ( var ix = 0; ix < AMOUNTX; ix ++ ) {
 					for ( var iy = 0; iy < AMOUNTY; iy ++ ) {
 						particle = particles[ i++ ];
+						//周期为4*Math.PI，在x和y方向上均是正(余)弦曲线
 						particle.position.y = ( Math.sin( ( ix + count ) * 0.3 ) * 50 ) +
 							( Math.sin( ( iy + count ) * 0.5 ) * 50 );
 						particle.scale.x = particle.scale.y = ( Math.sin( ( ix + count ) * 0.3 ) + 1 ) * 4 +

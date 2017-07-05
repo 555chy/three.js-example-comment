@@ -200,8 +200,12 @@
 			}
 
 			function save() {
-
-				window.open( renderer.domElement.toDataURL('image/png'), 'mywindow' );
+				//保存图片
+				var image = renderer.domElement.toDataURL("image/png").replace("image/png", "image/octet-stream");   
+                window.location.href=image; 
+				
+				//打开图片
+				//window.open( renderer.domElement.toDataURL('image/png'), 'mywindow' );
 				return false;
 
 			}

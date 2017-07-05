@@ -14,6 +14,9 @@
 - [canvas_geometry_panorama.html](examples/canvas_geometry_panorama.html)
 - [canvas_geometry_panorama_fisheye.html](examples/canvas_geometry_panorama_fisheye.html)
 - [canvas_geometry_text.html](examples/canvas_geometry_text.html)
+- [canvas_interactive_cubes.html](examples/canvas_interactive_cubes.html)
+- [canvas_interactive_cubes_tween.html](examples/canvas_interactive_cubes_tween.html)
+- [canvas_interactive_particles.html](examples/canvas_interactive_particles.html)
 - [canvas_geometry_shapes.html](examples/canvas_geometry_shapes.html)
 - [canvas_lines.html](examples/canvas_lines.html)
 - [canvas_lines_colors.html](examples/canvas_lines_colors.html)
@@ -25,6 +28,7 @@
 - [canvas_materials_video.html](examples/canvas_materials_video.html)
 - [canvas_particles_floor.html](examples/canvas_particles_floor.html)
 - [canvas_particles_random.html](examples/canvas_particles_random.html)
+- [canvas_particles_waves.html](examples/canvas_particles_waves.html)
 
 - [css3d_panorama.html](examples/css3d_panorama.html)
 - [css3d_panorama_deviceorientation.html](examples/css3d_panorama_deviceorientation.html)
@@ -271,6 +275,8 @@ CR-Spline需要至少4个控制点，首尾两个控制点为辅助点，曲线�
 |||
 | [Bird.js](examples/obj/Bird.js) 													| 鸟的形状 |
 | [hilbert2D.js](examples/js/geometries/hilbert2D.js)								| 希尔伯特2D曲线 |
+| [tween.js](examples/js/libs/tween.js)												| 对属性的改变，生成平滑的补间动画效果 |
+
 ## [View Examples](examples/index.html)
 
 **相关博客推荐**
@@ -281,6 +287,13 @@ CR-Spline需要至少4个控制点，首尾两个控制点为辅助点，曲线�
 **范例推荐**
 - 办公室
 https://hypnosnova.github.io/ThreeQuery/lab/office/office.html
+- 室内家装
+https://forreall.cn/3d/app/bgy1/
+- 水墨化场景变换
+https://hypnosnova.github.io/ThreeQuery/examples/028%E5%9C%BA%E6%99%AF%E5%88%87%E6%8D%A2%E8%BF%87%E6%B8%A1%E6%95%88%E6%9E%9C.html
+
+- 外国的模型交流网站
+sketchfab
 
 **Note:** 如果GitHub的当前页没有index.html的话，GitHub会按设置好的模板加载README.md
 
