@@ -63,7 +63,7 @@
 			var container = document.getElementById( 'container' );
 
 			renderer = new THREE.WebGLRenderer();
-			//window.devicePixelRatio是设备上物理像素和设备独立像素(device-independent pixels (dips))的比例。
+			//devicePixelRatio是设备上物理像素和设备独立像素(device-independent pixels (dips))的比例，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
 			renderer.setPixelRatio( window.devicePixelRatio );
 			//设置渲染场景的大小
 			renderer.setSize( window.innerWidth, window.innerHeight );

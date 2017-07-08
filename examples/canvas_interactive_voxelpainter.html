@@ -1,8 +1,20 @@
+<!--
+Voxel的定义：
+它是Volume Pixel的合写，有些人把它翻作体素。概念上类似于Pixel（像素），Pixel是二维电脑图像的最小单位，Voxel则是三维数据在三维空间分割上的最小单位，很早就应用于三维成像、医学影像（比如CT）等领域。
+Voxel的显示方式
+在电脑上，Pixel通常是用一个点（或圆或方）来表示；Voxel则通常用正方体来表示，有的也用球来表示，以及运用算法把Voxel数据转成Mesh数据来显示，这些算法包括MarchingCubes、Marching Terahedra、Dual Contouring（这个算法还是一个中国人发明的呢）、Dual Marching Cubes等等。
+Voxel在游戏上的应用
+很多人知道Voxel是因为MineCraft，这个销量超过30000000份的游戏，带起了一轮VoxelGame的热潮，但事实上Voxel很早就被用于游戏上了，例如三角洲部队，百战天虫。最近在steam上卖的很火的Planet Explorers、7Days To Die、StarForge等也是Voxel Game。
+-->
 <!DOCTYPE html>
 <html lang="en">
 	<head>
 		<title>three.js canvas - interactive - voxel painter</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -14,21 +26,27 @@
 		</style>
 	</head>
 	<body>
-
 		<script src="../build/three.js"></script>
-
+		<!--
+		想要使用CanvasRenderer，必须添加如下两个js文件 
+		Projector.js顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
+		THREE.Projector has been moved to /examples/js/renderers/Projector.js. three.js:42883:3
+		TypeError: THREE.RenderableVertex is not a constructor 
+		-->
 		<script src="js/renderers/Projector.js"></script>
 		<script src="js/renderers/CanvasRenderer.js"></script>
 
 		<script>
-
 			var container;
 			var camera, scene, renderer;
 			var plane;
-
 			var mouse, raycaster, isShiftDown = false;
-
-			var cubeGeometry = new THREE.BoxGeometry( 50, 50, 50 );
+			// Grid
+			var size = 500, step = 50;
+			
+			//立方体
+			var cubeGeometry = new THREE.BoxGeometry( step, step, step );
+			//这种材质会考虑光照的影响，可以用来创建颜色暗淡的、不光亮的物体
 			var cubeMaterial = new THREE.MeshLambertMaterial( { color: 0x00ff80, overdraw: 0.5 } );
 
 			var objects = [];
@@ -37,7 +55,6 @@
 			render();
 
 			function init() {
-
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
@@ -49,57 +66,81 @@
 				info.innerHTML = '<a href="http://threejs.org" target="_blank">three.js</a> - voxel painter<br><strong>click</strong>: add voxel, <strong>shift + click</strong>: remove voxel, <a href="javascript:save()">save .png</a>';
 				container.appendChild( info );
 
+				/*
+				透视相机
+                PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+				//定义相机的位置，有如下两种方式。如果不设置的话，相机位置为默认的Vector3{x:0,y:0,z:0}
+				//camera.position.x = 500;               
+				//camera.position.y = 800;
+                //camera.position.z = 1300;
 				camera.position.set( 500, 800, 1300 );
+				//Vector3不填参数，默认为{x:0, y:0, z:0}，相机的视角会正对着该点
 				camera.lookAt( new THREE.Vector3() );
 
 				scene = new THREE.Scene();
 
-				// Grid
-
-				var size = 500, step = 50;
-
 				var geometry = new THREE.Geometry();
-
+				//绘制网格
 				for ( var i = - size; i <= size; i += step ) {
-
+					//从左下角到右上角，先画横线，在画竖线
+					//绘制与X轴平行的横线
 					geometry.vertices.push( new THREE.Vector3( - size, 0, i ) );
 					geometry.vertices.push( new THREE.Vector3(   size, 0, i ) );
-
+					//绘制与Z轴平行的竖线
 					geometry.vertices.push( new THREE.Vector3( i, 0, - size ) );
 					geometry.vertices.push( new THREE.Vector3( i, 0,   size ) );
-
 				}
 
 				var material = new THREE.LineBasicMaterial( { color: 0x000000, opacity: 0.2 } );
-
+				/*
+				THREE.Line使用WebGL中的gl.LINE_STRIP(一系列的连续直线，即折线)渲染
+				THREE.LineSegments使用WebGL中的gl.LINES(每一对顶点被解释为一条直线，即线段)渲染
+				*/
 				var line = new THREE.LineSegments( geometry, material );
 				scene.add( line );
 
-				//
-
+				//射线
 				raycaster = new THREE.Raycaster();
 				mouse = new THREE.Vector2();
 
+				//创建一个XY平面，正方向为Z轴正方向。按右手螺旋定则，绕X轴旋转-90度
 				var geometry = new THREE.PlaneBufferGeometry( 1000, 1000 );
+				//注意geometry只能用rotateX，不能用rotation.x
 				geometry.rotateX( - Math.PI / 2 );
 
+				//通过材质的visible属性，设置网格是否可见
 				plane = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { visible: false } ) );
 				scene.add( plane );
-
 				objects.push( plane );
 
-				var material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
-
 				// Lights
-
-				var ambientLight = new THREE.AmbientLight( 0x606060 );
+				/*
+				环境光，这是一种基础光源，它的颜色会添加到整个场景和所有对象的当前颜色上 |
+				AmbientLight( color, intensity)
+				color		光源的颜色
+				intensity	光照强度，默认为1
+				*/
+				var ambientLight = new THREE.AmbientLight( 0x606060 );//灰黑色
 				scene.add( ambientLight );
 
-				var directionalLight = new THREE.DirectionalLight( 0xffffff );
+				/*
+				平行光，也称作无限光，这种光源发出的光线可以看作是平行的，例如太阳光
+				DirectionalLight( color, intensity)
+				color		光源的颜色
+				intensity	光照强度，默认为1
+				*/
+				var directionalLight = new THREE.DirectionalLight( 0xffffff );//白光
+				//平行光的position指的是它的方向
 				directionalLight.position.x = Math.random() - 0.5;
 				directionalLight.position.y = Math.random() - 0.5;
 				directionalLight.position.z = Math.random() - 0.5;
+				//normalize(): 单位化向量，使其模长为1
 				directionalLight.position.normalize();
 				scene.add( directionalLight );
 
@@ -111,112 +152,172 @@
 				scene.add( directionalLight );
 
 				renderer = new THREE.CanvasRenderer();
+				//设置渲染器的"清除色"和"透明度"
 				renderer.setClearColor( 0xf0f0f0 );
+				//devicePixelRatio是设备上物理像素和设备独立像素(device-independent pixels (dips))的比例，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
 				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
 				container.appendChild(renderer.domElement);
 
+				/*
+                element.addEventListener(event, function, useCapture)
+                useCapture，可选。true：事件句柄在捕获阶段执行；false：默认，事件句柄在冒泡阶段执行
+                */
 				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 				document.addEventListener( 'keydown', onDocumentKeyDown, false );
 				document.addEventListener( 'keyup', onDocumentKeyUp, false );
 
-				//
-
 				window.addEventListener( 'resize', onWindowResize, false );
-
-				
 			}
 
 			function onWindowResize() {
-
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-
-				renderer.setSize( window.innerWidth, window.innerHeight );
+				//重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
+                camera.aspect = window.innerWidth / window.innerHeight;
+                //更新透视相机的投影矩阵
+                camera.updateProjectionMatrix();
+				//更新待渲染场景的大小
+                renderer.setSize( window.innerWidth, window.innerHeight );
 
 				render();
-
 			}
 
 			function onDocumentMouseDown( event ) {
-
+				//通知 Web 浏览器不要执行与事件关联的默认动作(如果存在这样的动作)
 				event.preventDefault();
 
+				/*
+				html的坐标轴是以左上角为(0,0)，右下方向为正方向
+                event.clientX=event.pageX返回当事件被触发时鼠标指针向对于浏览器可见区域的X坐标
+                event.offsetX返回当前事件相对于事件源元素（srcElement）的X坐标
+                event.screenX鼠标相对于用户显示器屏幕左上角的X坐标
+				
+				mouse.x = (2 * event.clientX - renderer.domElement.clientWidth) / renderer.domElement.clientWidth
+				mouse.y = (renderer.domElement.clientHeight - 2 * event.clientY) / renderer.domElement.clientHeight
+				鼠标位置在一个边长为2的正方形内部，正方形中心为(0,0)点
+				因此，mouse.x和mouse.y的取值范围是[-1,1]
+				*/
 				mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
 				mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
 
+				//设置该射线从相机位置发出，射向视场的鼠标位置
 				raycaster.setFromCamera( mouse, camera );
 
+				//判断射线是否穿过这些物体，参数是数组。返回的是与射线相交的结果数组，按距离从近到远有序排列
 				var intersects = raycaster.intersectObjects( objects );
-
 				if ( intersects.length > 0 ) {
-
-					var intersect = intersects[ 0 ];
-
-					if ( isShiftDown ) {
-
-						if ( intersect.object != plane ) {
-
-							scene.remove( intersect.object );
-
-							objects.splice( objects.indexOf( intersect.object ), 1 );
-
-						}
-
-					} else {
-
-						var voxel = new THREE.Mesh( cubeGeometry, cubeMaterial );
-						voxel.position.copy( intersect.point ).add( intersect.face.normal );
-						voxel.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-						scene.add( voxel );
-
-						objects.push( voxel );
-
+					/*
+					intersects[ 0 ] {
+						distance: double
+						face: Face3
+						faceIndex: int
+						object: Mesh
+						point: Vector3
+						uv: Vector2
+						__proto__: Object
 					}
-
+					*/
+					var intersect = intersects[ 0 ];
+					if ( isShiftDown ) {
+						if ( intersect.object != plane ) {
+							scene.remove( intersect.object );
+							/*
+							array.splice(index,howmany,item1,.....,itemX)
+							向/从数组中添加/删除项目，然后返回被删除的项目，该方法会改变原始数组。
+							index				必填。整数，规定添加/删除项目的位置，使用负数可从数组结尾处规定位置。
+							howmany				必填。要删除的项目数量。如果设置为 0，则不会删除项目。
+							item1, ..., itemX	可选。向数组添加的新项目。
+							
+							array.indexOf(array, item, start);
+							搜索 Array 对象的指定元素并返回该元素的索引
+							array				必填。要搜索的数组。
+							item				必填。要在数组中查找的对象。
+							startIndex			可选。指定在数组中搜索的起始元素的索引号。
+							*/
+							objects.splice( objects.indexOf( intersect.object ), 1 );
+						}
+					} else {
+						var voxel = new THREE.Mesh( cubeGeometry, cubeMaterial );
+						/*
+						vector3不能直接用"等号"赋值。只能用copy进行复制。set方法需要分别传递x,y,z三个标量
+						intersect.face{a,b,c}指的是围成面的点索引。
+						intersect.normal指的是射线与该物体首次接触的面的法向量，法向量的模为1。因此这里加上法向量也是毫无意义的，法向量顶多是标识了添加的方向
+						*/
+						voxel.position.copy( intersect.point )//.add( intersect.face.normal );
+						//位置除以立方体大小并向下取整成索引，然后再恢复成位置，由于立方体的位置在其中心，因此要加上一半的边长，Scalar表示标量
+						voxel.position.divideScalar( step ).floor().multiplyScalar( step ).addScalar( step/2 );
+						scene.add( voxel );
+						objects.push( voxel );
+					}
 					render();
-
 				}
-
 			}
 
 			function onDocumentKeyDown( event ) {
-
+				//keyCode(16)是shift
 				switch( event.keyCode ) {
-
 					case 16: isShiftDown = true; break;
-
 				}
-
 			}
 
 			function onDocumentKeyUp( event ) {
-
 				switch( event.keyCode ) {
-
 					case 16: isShiftDown = false; break;
-
 				}
 			}
 
 			function save() {
-				//保存图片
-				var image = renderer.domElement.toDataURL("image/png").replace("image/png", "image/octet-stream");   
-                window.location.href=image; 
+				var image = renderer.domElement.toDataURL("image/png")
+				console.dir(image)
+				/*
+				HTMLCanvasElement.toDataURL(type, encoderOptions);返回一个包含图片的data URI。例如"data:image/png;base64,..."
+				type 			是图片格式，可选image/png(默认)，image/jpeg，image/webp，其它值无效，会被认为是image/png。
+				encoderOptions 	在指定图片格式为image/jpeg或image/webp的情况下，可以从0到1的区间内选择图片的质量。如果超出取值范围，将会使用默认值 0.92。其他参数会被忽略。
 				
+				修改DataURL的Mime-type为octet-stream，可以强行让浏览器下载图片
+				*/
+				
+				//保存图片
+				//var image = renderer.domElement.toDataURL("image/png").replace("image/png", "image/octet-stream");   
+                //window.location.href=image; 
+				
+				/*
+				window.open(URL,name,features,replace)
+				URL			声明了要在新窗口中显示的文档的 URL。如果省略了这个参数，或者它的值是空字符串，那么新窗口就不会显示任何文档。
+				name		该字符串是一个由逗号分隔的特征列表，其中包括数字、字母和下划线，该字符声明了新窗口的名称。这个名称可以用作标记 <a> 和 <form> 的属性 target 的值。如果该参数指定了一个已经存在的窗口，那么 open() 方法就不再创建一个新窗口，而只是返回对指定窗口的引用。在这种情况下，features 将被忽略。
+							_blank	URL加载到一个新的窗口
+							_parent	URL加载到父框架(替换当前页面)
+							_self	URL替换当前页面
+							_top	URL替换任何可加载的框架集(替换当前页面)
+							name	窗口名称(测试无效)
+				features	声明了新窗口要显示的标准浏览器的特征。如果省略该参数，新窗口将具有所有标准特征。在窗口特征这个表格中，我们对该字符串的格式进行了详细的说明。注意该特性并不会改变图像的大小
+							channelmode=yes|no|1|0	是否使用剧院模式显示窗口。默认为 no。
+							directories=yes|no|1|0	是否添加目录按钮。默认为 yes。
+							fullscreen=yes|no|1|0	是否使用全屏模式显示浏览器。默认是 no。处于全屏模式的窗口必须同时处于剧院模式。
+							height=pixels			窗口文档显示区的高度。以像素计。
+							left=pixels				窗口的 x 坐标。以像素计。
+							location=yes|no|1|0		是否显示地址字段。默认是 yes。
+							menubar=yes|no|1|0		是否显示菜单栏。默认是 yes。
+							resizable=yes|no|1|0	窗口是否可调节尺寸。默认是 yes。
+							scrollbars=yes|no|1|0	是否显示滚动条。默认是 yes。
+							status=yes|no|1|0		是否添加状态栏。默认是 yes。
+							titlebar=yes|no|1|0		是否显示标题栏。默认是 yes。
+							toolbar=yes|no|1|0		是否显示浏览器的工具栏。默认是 yes。
+							top=pixels				窗口的 y 坐标。
+							width=pixels			窗口的文档显示区的宽度。以像素计。
+				replace 	规定了装载到窗口的 URL 是在窗口的浏览历史中创建一个新条目，还是替换浏览历史中的当前条目。支持下面的值：
+							true - URL 替换浏览历史中的当前条目。
+							false - URL 在浏览历史中创建新的条目。
+				*/
 				//打开图片
-				//window.open( renderer.domElement.toDataURL('image/png'), 'mywindow' );
+				window.open( renderer.domElement.toDataURL('image/png'), '_blank', "width=100,height=100");
 				return false;
-
 			}
 
 			function render() {
-
 				renderer.render( scene, camera );
-
 			}
-
 		</script>
-
 	</body>
 </html>

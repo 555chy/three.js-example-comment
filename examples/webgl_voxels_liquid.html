@@ -11,7 +11,6 @@
 				margin: 0px;
 				overflow: hidden;
 			}
-
 			#info {
 				position: absolute;
 				top: 0px; width: 100%;
@@ -21,18 +20,25 @@
 		</style>
 	</head>
 	<body>
-
 		<script src="../build/three.js"></script>
 		<!--
 		检测支持(canvas，webgl，workers，fileApi)
 		-->
 		<script src="js/Detector.js"></script>
+		<!--
+		在不支持RequestAnimationFrame的旧版浏览器上会使用setTimeout进行降级
+		-->
 		<script src="js/RequestAnimationFrame.js"></script>
+		<!--
+		统计插件(FPS，渲染时间，chrome内存使用率)，min表示js代码经过压缩
+		-->
 		<script src="js/libs/stats.min.js"></script>
-
+		
 		<script>
-
-			var size = 10, res = 32, sizeres = size * res, halfsizeres = sizeres / 2;
+			//size是小正方形边长，res表示平面的每条边上有多少个小正方形
+			var size = 10, res = 32;
+			//sizeres是平面的边长
+			var sizeres = size * res, halfsizeres = sizeres / 2;
 			var buffer1 = [], buffer2 = [], temp;
 			var grid = [], plane;
 			var scene, camera, light, renderer;
@@ -40,205 +46,264 @@
 			var mouse, raycaster, intersects = [];
 			var stats;
 
+			//检查是否支持webgl
 			if ( Detector.webgl ) {
-
 				init();
 				animate();
-
 			} else {
-
+				//如果不支持webgl，则会在body内添加一个不支持的提示信息DIV
 				document.body.appendChild( Detector.getWebGLErrorMessage() );
-
 			}
 
 			function init() {
-
 				var container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
+				//统计插件(FPS，渲染时间，chrome内存使用率)
 				stats = new Stats();
-				stats.domElement.style.position = 'absolute';
-				stats.domElement.style.top = '0px';
+				//这里注意，统计插件的dom元素是"dom"，而不是domElement
 				container.appendChild( stats.dom );
 
+				/*
+				初始化平面上的所有小正方形数组
+				如果只是buffer1 = new Array(l)，那么虽然生成的数组总长度相同，但是数组的值全为undefined，它不会像高级语言一样自动赋0。
+				*/
 				for ( var i = 0, l = res * res; i < l; i ++ ) {
-
 					buffer1[ i ] = 0;
 					buffer2[ i ] = 0;
-
 				}
-
+				
 				scene = new THREE.Scene();
 
+				/*
+				透视相机
+                PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 2000 );
-				camera.position.x = 100 + sizeres;
-				camera.position.y = 200;
-				camera.position.z = 100 + sizeres;
+				//定义相机的位置，有如下两种方式。如果不设置的话，相机位置为默认的Vector3{x:0,y:0,z:0}
+				//camera.position.x = 100 + sizeres;
+				//camera.position.y = 200;
+				//camera.position.z = 100 + sizeres;
+				camera.position.set(100 + sizeres, 200, 100 + sizeres);
+				//相机的lookAt必须设置，不然注视位置便是undefined，也就不会有图像显示出来
 				camera.lookAt( new THREE.Vector3( halfsizeres, - 50, halfsizeres ) );
 				scene.add( camera );
 
-				scene.add( new THREE.AmbientLight( 0x808080 ) );
+				/*
+				环境光，这是一种基础光源，它的颜色会添加到整个场景和所有对象的当前颜色上
+				AmbientLight( color, intensity)
+				color		光源的颜色
+				intensity	光照强度，默认为1
+				*/
+				scene.add( new THREE.AmbientLight( 0x808080 ) );//灰色
 
+				/*
+				聚光灯光源，这种光源有聚光效果，类似台灯、天花板上的吊灯、或者手电筒
+				SpotLight( color, intensity, distance, angle, penumbra, decay );
+				color		光源的颜色
+				intensity	光照强度，默认为1
+				distance	光照射的距离
+				angle		光的张角，单位是弧度，默认值是Math.PI/3
+				penumbra	半影区模糊偏移量
+				decay		衰减系数
+				*/
 				light = new THREE.SpotLight( 0xffffff, 1.25 );
 				light.position.set( - 500, 900, 600 );
+				//聚光灯照射的目标位置
 				light.target.position.set( halfsizeres, 0, halfsizeres );
+				//该光源是否生成阴影
 				light.castShadow = true;
 				scene.add( light );
 
+				//小立方体
 				geometry = new THREE.CubeGeometry( size, size, size );
+				//改变几何体的原始矩阵，将其上移一般的高度，此后对该几何体的所有操作均将基于该矩阵
 				geometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, size / 2, 0 ) );
+				//这种材质会考虑光照的影响，可以用来创建颜色暗淡的、不光亮的物体
 				material = new THREE.MeshLambertMaterial( { color: 0xd0d0d0 } );
 
 				for ( var i = 0, l = res * res; i < l; i ++ ) {
-
 					cube = new THREE.Mesh( geometry, material );
-					cube.position.x = size + ( ( i % res ) * 10 );
-					cube.position.z = size + ( Math.floor( i / res ) * 10 );
+					cube.position.x = size + ( ( i % res ) * size );
+					cube.position.z = size + ( Math.floor( i / res ) * size );
+					//设置模型生成投影
 					cube.castShadow = true;
+					//设置模型接收阴影
 					cube.receiveShadow = true;
 					scene.add( cube );
 
 					grid.push( cube );
-
 				}
 
+				/*
 				geometry = new THREE.PlaneGeometry( sizeres, sizeres );
-
 				plane = new THREE.Mesh( geometry, material );
 				plane.position.x = halfsizeres;
 				plane.position.z = halfsizeres;
 				plane.rotation.x = - 90 * Math.PI / 180;
 				plane.visible = false;
 				scene.add( plane );
-
+				*/
+				
 				renderer = new THREE.WebGLRenderer();
-
+				//打开渲染器的地图阴影
 				renderer.shadowMap.enabled = true;
+				//softShadow边缘有经过Percentage Closer Filtering过滤处理，不容易锯齿
 				renderer.shadowMapSoft = true;
-
+				//投影近点，距离光源多近能产生阴影
 				renderer.shadowCameraNear = 3;
+				//投影远点，到哪一点为止不再产生阴影
 				renderer.shadowCameraFar = camera.far;
+				//投影视场，聚光的角度大小
 				renderer.shadowCameraFov = 50;
 
+				//阴影偏移
 				renderer.shadowMapBias = 0.0039;
+				//阴影暗度，默认0.5 定义阴影有多黑
 				renderer.shadowMapDarkness = 0.5;
+				//阴影映射宽度
 				renderer.shadowMapWidth = 512;
+				//阴影映射高度
 				renderer.shadowMapHeight = 512;
+				//如果为true，表示只在场景中添加阴影，并不会添加光照
+				//renderer.onlyShadow = false;
+				
+				//devicePixelRatio是设备上物理像素和设备独立像素(device-independent pixels (dips))的比例，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
+				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置待渲染场景的大小
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
+				container.appendChild(renderer.domElement);
 
-				var devicePixelRatio = window.devicePixelRatio || 1;
-
-				renderer.setSize( window.innerWidth * devicePixelRatio, window.innerHeight * devicePixelRatio );
-				renderer.domElement.style.width = window.innerWidth + 'px';
-				renderer.domElement.style.height = window.innerHeight + 'px';
-
-				container.appendChild( renderer.domElement );
-
-				mouse = new THREE.Vector3( 0, 0, 1 );
+				//射线
 				raycaster = new THREE.Raycaster();
+				mouse = new THREE.Vector2();
 
+				/*
+                element.addEventListener(event, function, useCapture)
+                useCapture，可选。true：事件句柄在捕获阶段执行；false：默认，事件句柄在冒泡阶段执行
+                */
 				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				
+				window.addEventListener( 'resize', onWindowResize, false );
+			}
+			
+			function onWindowResize() {
+				//重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
+                camera.aspect = window.innerWidth / window.innerHeight;
+                //更新透视相机的投影矩阵
+                camera.updateProjectionMatrix();
+				//更新待渲染场景的大小
+                renderer.setSize( window.innerWidth, window.innerHeight );
 
+				render();
 			}
 
 			function onDocumentMouseMove( event ) {
+				//通知 Web 浏览器不要执行与事件关联的默认动作(如果存在这样的动作)
+				event.preventDefault();
+				
+				/*
+				html的坐标轴是以左上角为(0,0)，右下方向为正方向
+                event.clientX=event.pageX返回当事件被触发时鼠标指针向对于浏览器可见区域的X坐标
+                event.offsetX返回当前事件相对于事件源元素（srcElement）的X坐标
+                event.screenX鼠标相对于用户显示器屏幕左上角的X坐标
+				
+				mouse.x = (2 * event.clientX - renderer.domElement.clientWidth) / renderer.domElement.clientWidth
+				mouse.y = (renderer.domElement.clientHeight - 2 * event.clientY) / renderer.domElement.clientHeight
+				鼠标位置在一个边长为2的正方形内部，正方形中心为(0,0)点
+				因此，mouse.x和mouse.y的取值范围是[-1,1]
+				*/
+				mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
 
-				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-
+				//设置该射线从相机位置发出，射向视场的鼠标位置
 				raycaster.setFromCamera(mouse, camera);
+				//判断射线是否穿过这些物体，参数是数组。返回的是与射线相交的结果数组，按距离从近到远有序排列
 				intersects = raycaster.intersectObjects(grid);
 			}
 
 			function animate() {
-
 				requestAnimationFrame( animate );
 
 				render();
+				//这里可以在render前后使用stats.begin和stats.end，也可以在每次渲染的时候调用一次stats.update
 				stats.update();
-
 			}
 
 			function render() {
 				if ( intersects.length ) {
-
+					/*
+					intersects[ 0 ] {
+						distance: double
+						face: Face3
+						faceIndex: int
+						object: Mesh
+						point: Vector3
+						uv: Vector2
+						__proto__: Object
+					}
+					*/
 					var point = intersects[ 0 ].point;
 					var x = Math.floor( point.x / size );
 					var y = Math.floor( point.z / size );
 
-					buffer1[ x + y * res ] = 10;
-
+					//这个大小决定了起伏的高度，值越大越高
+					buffer1[ x + y * res ] = size;
 				}
-
-				var bottom = res * res - res;
 
 				// update buffers
 				for ( var i = 0, l = res * res; i < l; i ++ ) {
-
+					//存储该点左右上下的值
 					var x1, x2, y1, y2;
-
 					if ( i % res == 0 ) {
-
 						// left edge
-
 						x1 = 0;
 						x2 = buffer1[ i + 1 ];
-
 					} else if ( i % res == res - 1 ) {
-
 						// right edge
-
 						x1 = buffer1[ i - 1 ];
 						x2 = 0;
-
 					} else {
-
 						x1 = buffer1[ i - 1 ];
 						x2 = buffer1[ i + 1 ];
-
 					}
-
 					if ( i < res ) {
-
 						// top edge
-
 						y1 = 0;
 						y2 = buffer1[ i + res ];
-
 					} else if ( i > l - res - 1 ) {
-
 						// bottom edge
-
 						y1 = buffer1[ i - res ];
 						y2 = 0;
-
 					} else {
-
 						y1 = buffer1[ i - res ];
 						y2 = buffer1[ i + res ];
-
 					}
-
-					buffer2[ i ] = ( x1 + x2 + y1 + y2 ) / 1.9 - buffer2[ i ];
+					//除数的大小决定了起伏的高度，值越低越高，但必须大于1.9
+					//这里就相当于该块周围新的均值的2倍减去原始值
+					buffer2[ i ] = ( x1 + x2 + y1 + y2 ) / 2 - buffer2[ i ];
+					//由于mousemove时刻都在触发，为了不至于让波动太明显，这里要减掉一个值，让其小于某个阈值
 					buffer2[ i ] -= buffer2[ i ] / 10;
-
 				}
 
+				//交换两数组，交换使得它们不断的平均
+				//交换后：buffer1是中间低周围高，buffer2是中间高周围低
 				temp = buffer1;
 				buffer1 = buffer2;
 				buffer2 = temp;
 
 				// update grid
-
 				for ( var i = 0, l = res * res; i < l; i ++ ) {
-
+					//grid[ i ].scale.y = grid[ i ].scale.y * 0.9 +  Math.max( 0.1, 0.1 + buffer2[ i ] ) * 0.1
 					grid[ i ].scale.y += ( Math.max( 0.1, 0.1 + buffer2[ i ] ) - grid[ i ].scale.y ) * 0.1;
-
 				}
-
 				renderer.render( scene, camera );
-
 			}
-
 		</script>
 	</body>
 </html>

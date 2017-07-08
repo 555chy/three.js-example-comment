@@ -193,7 +193,8 @@
 				camera.position.z = radius * Math.cos( THREE.Math.degToRad( theta ) );
 				camera.lookAt( scene.position );
 
-				camera.updateMatrixWorld();
+				//这句注释掉也不会有问题
+				//camera.updateMatrixWorld();
 
 				// find intersections
 				//设置该射线从相机位置发出，射向视场的鼠标位置

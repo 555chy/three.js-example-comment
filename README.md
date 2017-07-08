@@ -13,11 +13,12 @@
 - [canvas_geometry_hierarchy.html](examples/canvas_geometry_hierarchy.html)
 - [canvas_geometry_panorama.html](examples/canvas_geometry_panorama.html)
 - [canvas_geometry_panorama_fisheye.html](examples/canvas_geometry_panorama_fisheye.html)
+- [canvas_geometry_shapes.html](examples/canvas_geometry_shapes.html)
 - [canvas_geometry_text.html](examples/canvas_geometry_text.html)
 - [canvas_interactive_cubes.html](examples/canvas_interactive_cubes.html)
 - [canvas_interactive_cubes_tween.html](examples/canvas_interactive_cubes_tween.html)
 - [canvas_interactive_particles.html](examples/canvas_interactive_particles.html)
-- [canvas_geometry_shapes.html](examples/canvas_geometry_shapes.html)
+- [canvas_interactive_voxelpainter.html](examples/canvas_interactive_voxelpainter.html)
 - [canvas_lines.html](examples/canvas_lines.html)
 - [canvas_lines_colors.html](examples/canvas_lines_colors.html)
 - [canvas_lines_colors_2d.html](examples/canvas_lines_colors_2d.html)
@@ -40,17 +41,18 @@
 - [software_geometry_earth.html](examples/canvas_geometry_earth.html)
 
 - [webgl_geometry_cube.html](examples/webgl_geometry_cube.html)
+- [webgl_geometry_convex.html](examples/webgl_geometry_convex.html)
 - [webgl_geometries.html](examples/webgl_geometries.html)
 - [webgl_materials_grass.html](examples/webgl_materials_grass.html)
 - [webgl_panorama_cube.html](examples/webgl_panorama_cube.html)
 - [webgl_test_memory.html](examples/webgl_test_memory.html)
+- [webgl_voxels_liquid.html](examples/webgl_voxels_liquid.html)
 
 - [CombinedCamera.js](examples/js/cameras/CombinedCamera.js)
 - [hilbert2D.js](examples/js/geometries/hilbert2D.js)	
 
 ## 当前批阅项
 - [webgl_lights_hemisphere.html](examples/webgl_lights_hemisphere.html)
-- [canvas_interactive_cubes.html](examples/canvas_interactive_cubes.html)
 
 ***
 
@@ -59,13 +61,20 @@
 ### 光源
 | Name | 名字 | 描述 |
 | :--- | :--- | :--- |
-| AmbientLight		| 环境光		| 这是一种基础光源，它的颜色会添加到整个场景和所有对象的当前颜色上 |
-| PointLight		| 点光源		| 空间中的一点，朝所有方向发射光线 |
-| SpotLight			| 聚光灯光源	| 这种光源有聚光效果，类似台灯、天花板上的吊灯、或者手电筒 |
-| DirectionLight	| 方向光		| 也称作无限光，这种光源发出的光线可以看作是平行的，例如太阳光 |
-| HemisphereLight	| 半球光		| 这是一种特殊的光源，可以用来创建更加自然的室外光线，模拟反光面和光线微弱的天空 |
-| AreaLight			| 面光源		| 使用这种光源可以指定散发光线的平面，而不是空间中的一点 |
-| LensFlare			| 镜头眩光		| 这不是一种光源，而是通过LensFlare为场景中的光源添加眩光效果 |
+| AmbientLight		| 环境光		| 这是一种基础光源，它的颜色会添加到整个场景和所有对象的当前颜色上					|
+| AmbientLight(color, intensity)|
+| DirectionalLight	| 方向光		| 也称作无限光，这种光源发出的光线可以看作是平行的，例如太阳光						|
+| DirectionalLight(color, intensity)|
+| PointLight		| 点光源		| 空间中的一点，朝所有方向发射光线 													|
+| PointLight(color, intensity, distance, decay)|
+| SpotLight			| 聚光灯光源	| 这种光源有聚光效果，类似台灯、天花板上的吊灯、或者手电筒 							|
+| SpotLight(color, intensity, distance, angle, penumbra, decay)|
+| HemisphereLight	| 半球光		| 这是一种特殊的光源，可以用来创建更加自然的室外光线，模拟反光面和光线微弱的天空	|
+| HemisphereLight(color, groundColor, intensity)|
+| RectAreaLight		| 面光源		| 使用这种光源可以指定散发光线的平面，而不是空间中的一点 							|
+| RectAreaLight (color, intensity, width, height)|
+| LensFlare			| 镜头眩光		| 这不是一种光源，而是通过LensFlare为场景中的光源添加眩光效果 						|
+| LensFlare(texture, size, distance, blending, color)|
 
 ### 几何体
 | Name | 名字 |
@@ -101,8 +110,9 @@
 | ShaderMaterial		| 这种材允许使用自定义的着色器程序，直接控制顶点的放置方式，以及像素的着色方式 |
 | LineBasicMaterial		| 这种材质可以用于THREE.Line(直线)几何体，从而创建着色的直线 }
 | LineDashedMaterial	| 这种材质跟直线基础材质一样，不过可以用来创建出一种虚线效果 |
-| SpriteMaterial		| Sprite(点精灵)的材质标准渲染器 |
+| SpriteMaterial		| CanvasRenderer下Sprite(点精灵)的材质标准渲染器 |
 | SpriteCanvasMaterial  | 使用canvas渲染器的Sprite(点精灵)的材质 |
+| PointsMaterial		| WebGLRenderer下的粒子渲染器 |
 } MultiMaterial			| 使用多种材质渲染同一物体 |
 
 ### 渲染器
@@ -164,7 +174,7 @@ AxisHelper(坐标轴)只能在WebGLRenderer下显示，不能在CanvasRenderer�
 { 0, 0*x, 	z, 		0	  }
 { 0, 0, 	0, 		1	  }
 ```
-xyz表示相乘之后的符号位，负号会改变原先的material中的side参数
+xyz表示相乘之后的符号位，负号会改变原先的material中的side参数。这是因为这里的0实际上是一个很小非零的值。
 
 4. 原始法向量normalMatrix为 =》
 ```markdown
@@ -192,6 +202,7 @@ Multiplies the current matrix by the one specified through the parameters.
 
 **范例:**
 - [webgl_panorama_cube.html](examples/webgl_panorama_cube.html)
+- [webgl_voxels_liquid.html](examples/webgl_voxels_liquid.html)
 
 ### js的apply与call的异同
 1. Function.apply(obj,args)方法接收两个参数
@@ -241,6 +252,27 @@ CR-Spline需要至少4个控制点，首尾两个控制点为辅助点，曲线�
 **范例:**
 - [canvas_lines_dashed.html](examples/canvas_lines_dashed.html)
 
+### 超链接标签(a)的rel="noopenper"的作用
+```markdown
+<a target="_blank" rel="noopener" href="https://www.baidu.com"/>
+```
+它是chrome 49+，Opera 36+的新特性，如果没有这个属性，新页面(钓鱼网站)就可以通过window.opener来访问你的window对象。
+打开添加了rel=noopener的链接，window.opener 会为null。也可以使用下面代码打开一个新的页面
+```markdown
+var otherWindow = window.open('http://www.baidu.com');
+otherWindow.opener = null;
+otherWindow.location = url;
+```
+### 正N面体的顶点数，棱数
+对于多面体：面数+顶点数=棱数+2(称为欧拉定律) 
+正十二面体有12个面，每面都是正五边形，各有5条边，每条边被2个面共用，所以一共有12*5/2=30条棱。
+这样，顶点就是20个。
+例如：
+正四面体，每个面3个顶点，共4个顶点，6条棱
+正六面体，每个面4个顶点，共8个顶点，12条棱
+正八面体，每个面3个顶点，共6个顶点，12条棱
+正十二面体，每个面5个顶点，共20个顶点，30条棱
+
 ***
 
 ## 我的疑惑
@@ -248,7 +280,10 @@ CR-Spline需要至少4个控制点，首尾两个控制点为辅助点，曲线�
 ### [canvas_materials_reflection.js](examples/js/cameras/canvas_materials_reflection.html)中texture.mapping为什么只能用SphericalReflectionMapping，其它碎片噪音哪里来的?
 ### [canvas_geometry_shapes.html](examples/canvas_geometry_shapes.html)中WebGLRenderer中的sortElements和sortObjects是怎么用的?
 ### [canvas_lines_dashed.html](examples/canvas_lines_dashed.html)中geometry.computeLineDistances()有什么用？LineDashedMaterial材质不计算
-### [canvas_geometry_text.html](examples/canvas_geometry_text.html)一旦删掉setClearColor，字体height就无效了
+### [canvas_geometry_text.html](examples/canvas_geometry_text.html)一旦删掉setClearColor，字体height就无效了？
+### [canvas_interactive_particles.html](examples/canvas_interactive_particles.html)中camera.updateMatrixWorld()有什么用？
+### [webgl_voxels_liquid.html](examples/webgl_voxels_liquid.html) 算法没看太懂
+### [webgl_geometry_convex.html](examples/webgl_geometry_convex.html) 这里只能分别添加内渲染和外渲染的网格，以达到透视的效果。而DoubleSide无法实现透视效果
 
 ## 相关插件
 | 插件 | 功能 |
@@ -267,8 +302,8 @@ CR-Spline需要至少4个控制点，首尾两个控制点为辅助点，曲线�
 | [SoftwareRenderer.js](examples/js/renderers/SoftwareRenderer.js)					| 不依赖GPU进行渲染 |
 | [CSS3DRenderer.js](examples/js/renderers/CSS3DRenderer.js)						| 使用CSS3渲染3D的DOM元素 |
 |||
-| [OrbitControls.js](examples/js/controls/OrbitControls.js)							| 轨道控制，鼠标左键旋转(与鼠标方向相同，用于非触摸屏上)，右键平移，中键缩放；也可以使用键盘控制 |
-| [TrackballControls.js](examples/js/controls/TrackballControls.js)					| 轨迹控制，鼠标左键旋转(与鼠标方向相反，用于触摸屏上)，右键平移，中键缩放；也可以使用键盘控制 |
+| [OrbitControls.js](examples/js/controls/OrbitControls.js)							| 轨道控制，鼠标左键旋转(与鼠标方向相同，用于非触摸屏上)，右键平移，中键靠近或远离；也可以使用键盘控制 |
+| [TrackballControls.js](examples/js/controls/TrackballControls.js)					| 轨迹控制，鼠标左键旋转(与鼠标方向相反，用于触摸屏上)，右键平移，中键靠近或远离；也可以使用键盘控制 |
 | [DeviceOrientationControls.js](examples/js/controls/DeviceOrientationControls.js)	| 设备朝向控制，仅对移动设备有效。根据设备朝向调整被控制元素朝向 |
 |||
 | [AsciiEffect.js](examples/js/effects/AsciiEffect.js) 								| ASCII文本画渲染效果 |
@@ -276,6 +311,7 @@ CR-Spline需要至少4个控制点，首尾两个控制点为辅助点，曲线�
 | [Bird.js](examples/obj/Bird.js) 													| 鸟的形状 |
 | [hilbert2D.js](examples/js/geometries/hilbert2D.js)								| 希尔伯特2D曲线 |
 | [tween.js](examples/js/libs/tween.js)												| 对属性的改变，生成平滑的补间动画效果 |
+| [ConvexGeometry.js](examples/js/geometries/ConvexGeometry.js)						| 凸几何体 |
 
 ## [View Examples](examples/index.html)
 
