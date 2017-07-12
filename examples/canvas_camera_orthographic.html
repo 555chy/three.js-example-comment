@@ -117,11 +117,21 @@
 				}
 
 				// Lights
-				//添加环境光，提供的是在不同位置和方向上强度都相同的光源，相当于光照模型中各物体之间的反射光，因此通常用来表现光强中非常弱的那部分光
+				/*
+				环境光，提供的是在不同位置和方向上强度都相同的光源，它的颜色会添加到整个场景和所有对象的当前颜色上，相当于光照模型中各物体之间的反射光，因此通常用来表现光强中非常弱的那部分光
+				AmbientLight( color, intensity)
+				color		光源的颜色
+				intensity	光照强度，默认为1
+				*/
 				var ambientLight = new THREE.AmbientLight( Math.random() * 0x10 );
 				scene.add( ambientLight );
 
-				//平行光光源就如同太阳，若在场景中添加了一个平行光，它可以影响场景中的所有物体，而无论平行光光源设置在任何位置
+				/*
+				平行光，也称作无限光，平行光光源就如同太阳，若在场景中添加了一个平行光，它可以影响场景中的所有物体，而无论平行光光源设置在任何位置
+				DirectionalLight( color, intensity)
+				color		光源的颜色
+				intensity	光照强度，默认为1
+				*/
 				var directionalLight = new THREE.DirectionalLight( Math.random() * 0xffffff );
 				//directionLight(平行光)的position实际上存储的是它的方向，而非位置
 				directionalLight.position.x = Math.random() - 0.5;

@@ -196,10 +196,13 @@
 					Out：减速到0的缓动，也就是先快后慢；
 					InOut：前半段从0开始加速，后半段减速到0的缓动。
 					
-					position: Vector3{x,y,z}
+						position: Vector3{x,y,z}
+					delay: function，延迟执行，单位毫秒
 					to: function to(properties, duration)
-					properties: object{x,y,z}，注意properties的key必须在Tween的参数中能找到
-					duration: 动画时间，单位毫秒
+						properties: object{x,y,z}，注意properties的key必须在Tween的参数中能找到
+						duration: 动画时间，单位毫秒
+					onComplete: function，动画完成后的回调
+					start: function，开始动画
 					
 					设置补间动画的作用属性，然后设置属性的目标值，最后开启补间动画，在requestAnimationFrame中更新补间
 					*/
@@ -208,6 +211,7 @@
 						y: Math.random() * 800 - 400,
 						z: Math.random() * 800 - 400 }, 2000 )
 					.easing( TWEEN.Easing.Elastic.Out).start();
+					
 					new TWEEN.Tween( intersects[ 0 ].object.rotation ).to( {
 						x: Math.random() * 2 * Math.PI,
 						y: Math.random() * 2 * Math.PI,

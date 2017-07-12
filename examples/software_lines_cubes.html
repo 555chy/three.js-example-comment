@@ -79,7 +79,9 @@
 
 				scene = new THREE.Scene();
 
+				//对比可以发现Software的渲染速度比WebGL慢很多，基本卡着动不了
 				renderer = new THREE.SoftwareRenderer();
+				//renderer = new THREE.WebGLRenderer();
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				container.appendChild( renderer.domElement );
 

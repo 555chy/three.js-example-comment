@@ -29,7 +29,9 @@
 - [canvas_materials_video.html](examples/canvas_materials_video.html)
 - [canvas_particles_floor.html](examples/canvas_particles_floor.html)
 - [canvas_particles_random.html](examples/canvas_particles_random.html)
+- [canvas_particles_sprites.html](examples/canvas_particles_sprites.html)
 - [canvas_particles_waves.html](examples/canvas_particles_waves.html)
+- [canvas_performance.html](examples/canvas_performance.html)
 
 - [css3d_panorama.html](examples/css3d_panorama.html)
 - [css3d_panorama_deviceorientation.html](examples/css3d_panorama_deviceorientation.html)
@@ -63,7 +65,7 @@
 | :--- | :--- | :--- |
 | AmbientLight		| 环境光		| 这是一种基础光源，它的颜色会添加到整个场景和所有对象的当前颜色上					|
 | AmbientLight(color, intensity)|
-| DirectionalLight	| 方向光		| 也称作无限光，这种光源发出的光线可以看作是平行的，例如太阳光						|
+| DirectionalLight	| 方向光		| 也称作无限光，平行光光源就如同太阳，若在场景中添加了一个平行光，它可以影响场景中的所有物体，而无论平行光光源设置在任何位置 |
 | DirectionalLight(color, intensity)|
 | PointLight		| 点光源		| 空间中的一点，朝所有方向发射光线 													|
 | PointLight(color, intensity, distance, decay)|
@@ -101,7 +103,7 @@
 ### 材质
 | Name | 名字 | 描述 |
 | :--- | :--- | :--- |
-| MeshBasicMaterial		| 基础材质，可以用它赋予几何体一种简单的颜色，或者显示几何体的线框 |
+| MeshBasicMaterial		| 提供的是在不同位置和方向上强度都相同的光源，它的颜色会添加到整个场景和所有对象的当前颜色上，相当于光照模型中各物体之间的反射光，因此通常用来表现光强中非常弱的那部分光 |
 | MeshDepthMaterial		| 根据网格到相机的距离，这种材质决定如何给网格染色 |
 | MeshNormalMaterial	| 这是一种简单的材质，根据物体表面的法向量计算颜色 |
 | MeshFaceMaterial		| 这是一个容器，可以在这个容器里为物体的各个表面指定不同的颜色 |
@@ -327,7 +329,12 @@ https://hypnosnova.github.io/ThreeQuery/lab/office/office.html
 https://forreall.cn/3d/app/bgy1/
 - 水墨化场景变换
 https://hypnosnova.github.io/ThreeQuery/examples/028%E5%9C%BA%E6%99%AF%E5%88%87%E6%8D%A2%E8%BF%87%E6%B8%A1%E6%95%88%E6%9E%9C.html
-
+- 水滴效果
+https://tympanus.net/Development/RainEffect/index.html
+- 纽约地铁系统变成可以弹奏的弦乐器
+http://www.mta.me/
+- 水池
+http://madebyevan.com/webgl-water/
 - 外国的模型交流网站
 sketchfab
 

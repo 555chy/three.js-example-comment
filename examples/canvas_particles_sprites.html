@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js canvas - particles - sprites</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -18,10 +22,23 @@
 	<body>
 		<script src="../build/three.js"></script>
 
+		<!--
+		想要使用CanvasRenderer，必须添加如下两个js文件 
+		Projector.js顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
+		THREE.Projector has been moved to /examples/js/renderers/Projector.js. three.js:42883:3
+		TypeError: THREE.RenderableVertex is not a constructor 
+		-->
 		<script src="js/renderers/Projector.js"></script>
 		<script src="js/renderers/CanvasRenderer.js"></script>
 
+		<!--
+		统计插件(FPS，渲染时间，chrome内存使用率)，min表示js代码经过压缩
+		-->
 		<script src="js/libs/stats.min.js"></script>
+		
+		<!--
+		对属性的改变，生成平滑的补间动画效果
+		-->
 		<script src="js/libs/tween.min.js"></script>
 
 		<script>
@@ -39,13 +56,35 @@
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
+				/*
+				透视相机
+                PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 5000 );
+				//定义相机的位置，有如下两种方式。如果不设置的话，相机位置为默认的Vector3{x:0,y:0,z:0}
 				camera.position.z = 1000;
+				//camera.position.set(0,0,100);
 
 				scene = new THREE.Scene();
 
+				/*
+				雪碧图材质，也叫精灵图
+				
+				CSS Sprites其实就是把网页中一些背景图片整合到一张图片文件中，再利用CSS的“background-image”，“background- repeat”，“background-position”的组合进行背景定位，background-position可以用数字精确的定位出背景图片的位置。
+				
+				在Three.js中意思有点稍微不一样
+				A sprite is a plane that always faces towards the camera, generally with a partially transparent texture applied.
+				Sprites do not cast shadows, setting castShadow = true will have no effect. 
+				一个精灵也就是一个平面，它的面总是朝向相机，通常来说会采用一个部分透明的纹理
+				精灵不能投影出阴影，设置 castShadow = true 没有任何效果
+				*/
 				var material = new THREE.SpriteMaterial( {
 					map: new THREE.CanvasTexture( generateSprite() ),
+					//AdditiveBlending，是一种加法混合模式，材质中的黑色会被当做是透明的
 					blending: THREE.AdditiveBlending
 				} );
 
@@ -57,14 +96,25 @@
 
 				renderer = new THREE.CanvasRenderer();
 				renderer.setClearColor( 0x000040 );
+				//设置屏幕像素比，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
 				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
 				container.appendChild( renderer.domElement );
 
+				//统计插件(FPS，渲染时间，chrome内存使用率)
 				stats = new Stats();
+				//这里注意，统计插件的dom元素是"dom"，而不是domElement
 				container.appendChild( stats.dom );
 
+				/*
+                element.addEventListener(event, function, useCapture)
+                useCapture，可选。true：事件句柄在捕获阶段执行；false：默认，事件句柄在冒泡阶段执行
+                */
+				//mouse事件是针对PC浏览器的
 				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				//touch事件是针对手持设备的
 				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 				document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
@@ -75,38 +125,76 @@
 				windowHalfX = window.innerWidth / 2;
 				windowHalfY = window.innerHeight / 2;
 
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-
+				//重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
+                camera.aspect = window.innerWidth / window.innerHeight;
+                //更新透视相机的投影矩阵
+                camera.updateProjectionMatrix();
+				//更新待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
 			}
 
+			//创建粒子的画布
 			function generateSprite() {
 				var canvas = document.createElement( 'canvas' );
 				canvas.width = 16;
 				canvas.height = 16;
 
 				var context = canvas.getContext( '2d' );
+				/*
+				径向渐变
+				context.createRadialGradient(x0,y0,r0,x1,y1,r1);
+					x0	渐变的开始圆的 x 坐标
+					y0	渐变的开始圆的 y 坐标
+					r0	开始圆的半径
+					x1	渐变的结束圆的 x 坐标
+					y1	渐变的结束圆的 y 坐标
+					r1	结束圆的半径
+				*/
 				var gradient = context.createRadialGradient( canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2 );
-				gradient.addColorStop( 0, 'rgba(255,255,255,1)' );
-				gradient.addColorStop( 0.2, 'rgba(0,255,255,1)' );
-				gradient.addColorStop( 0.4, 'rgba(0,0,64,1)' );
-				gradient.addColorStop( 1, 'rgba(0,0,0,1)' );
-
+				gradient.addColorStop( 0, 'rgba(255,255,255,1)' );	//白色
+				gradient.addColorStop( 0.2, 'rgba(0,255,255,1)' );	//青色
+				gradient.addColorStop( 0.4, 'rgba(0,0,64,1)' );		//深蓝色
+				gradient.addColorStop( 1, 'rgba(0,0,0,1)' );		//黑色
 				context.fillStyle = gradient;
 				context.fillRect( 0, 0, canvas.width, canvas.height );
-
 				return canvas;
 			}
 
 			function initParticle( particle, delay ) {
 				var particle = this instanceof THREE.Sprite ? this : particle;
 				var delay = delay !== undefined ? delay : 0;
-
 				particle.position.set( 0, 0, 0 );
-				
 				particle.scale.x = particle.scale.y = Math.random() * 32 + 16;
 
+				/*
+				运动算法Easing名称列表：
+				Linear：线性匀速运动效果；
+				Quadratic：二次方的缓动（t^2）；
+				Cubic：三次方的缓动（t^3）；
+				Quartic：四次方的缓动（t^4）；
+				Quintic：五次方的缓动（t^5）；
+				Sinusoidal：正弦曲线的缓动（sin(t)）；
+				Exponential：指数曲线的缓动（2^t）；
+				Circular：圆形曲线的缓动（sqrt(1-t^2)）；
+				Elastic：指数衰减的正弦曲线缓动；
+				Back：超过范围的三次方缓动（(s+1)*t^3 – s*t^2）；
+				Bounce：指数衰减的反弹缓动。
+				
+				每个效果都分三个缓动方式，分别是：
+				In：从0开始加速的缓动，也就是先慢后快；
+				Out：减速到0的缓动，也就是先快后慢；
+				InOut：前半段从0开始加速，后半段减速到0的缓动。
+				
+					position: Vector3{x,y,z}
+				delay: function，延迟执行，单位毫秒
+				to: function to(properties, duration)
+					properties: object{x,y,z}，注意properties的key必须在Tween的参数中能找到
+					duration: 动画时间，单位毫秒
+				onComplete: function，动画完成后的回调
+				start: function，开始动画
+				
+				设置补间动画的作用属性，然后设置属性的目标值，最后开启补间动画，在requestAnimationFrame中更新补间
+				*/
 				new TWEEN.Tween( particle )
 					.delay( delay )
 					.to( {}, 10000 )
@@ -115,6 +203,7 @@
 
 				new TWEEN.Tween( particle.position )
 					.delay( delay )
+					//半径为2000的球内的任意一点
 					.to( { x: Math.random() * 4000 - 2000, y: Math.random() * 1000 - 500, z: Math.random() * 4000 - 2000 }, 10000 )
 					.start();
 
@@ -125,12 +214,22 @@
 			}
 
 			function onDocumentMouseMove( event ) {
+				/*
+                html的坐标轴是以左上角为(0,0)，右下方向为正方向
+                event.clientX=event.pageX返回当事件被触发时鼠标指针向对于浏览器可见区域的X坐标
+                event.offsetX返回当前事件相对于事件源元素（srcElement）的X坐标
+                event.screenX鼠标相对于用户显示器屏幕左上角的X坐标
+                */
 				mouseX = event.clientX - windowHalfX;
 				mouseY = event.clientY - windowHalfY;
 			}
 
 			function onDocumentTouchStart( event ) {
-				if ( event.touches.length == 1 ) {
+				/*
+				三个等号是恒等，比较数值的同时也比较类型。
+                这里限制只有单指触摸的时候才执行相应的方法
+				*/
+				if ( event.touches.length === 1 ) {
 					event.preventDefault();
 
 					mouseX = event.touches[ 0 ].pageX - windowHalfX;
@@ -149,8 +248,8 @@
 
 			function animate() {
 				requestAnimationFrame( animate );
-
 				render();
+				//这里可以在render前后使用stats.begin和stats.end，也可以在每次渲染的时候调用一次stats.update
 				stats.update();
 			}
 
