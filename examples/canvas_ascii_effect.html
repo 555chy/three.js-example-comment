@@ -100,7 +100,7 @@
 				scene.add( light );
 
 				/*
-				PointLight( data.color, data.intensity, data.distance, data.decay );
+				PointLight( color, intensity, distance, decay );
 				color：光的颜色
 				intensity：光照强度，默认为1
 				distance：光最长能照射的距离，默认为0
@@ -115,7 +115,6 @@
 				scene.add( sphere );
 
 				// Plane
-
 				plane = new THREE.Mesh( new THREE.PlaneBufferGeometry( 400, 400 ), new THREE.MeshBasicMaterial( { color: 0xe0e0e0 } ) );
 				plane.position.y = - 200;
 				plane.rotation.x = - Math.PI / 2;

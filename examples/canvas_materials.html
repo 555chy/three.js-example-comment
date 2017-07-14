@@ -173,22 +173,60 @@
 				};
 
 				// Lights
-				//AmbientLight，这是一种基础光源，它的颜色会添加到整个场景和所有对象的当前颜色上
+				/*
+				环境光，这是一种基础光源，它的颜色会添加到整个场景和所有对象的当前颜色上 |
+				AmbientLight( color, intensity)
+				color		光源的颜色
+				intensity	光照强度，默认为1
+				*/
 				scene.add( new THREE.AmbientLight( Math.random() * 0x202020 ) );
 
-				//DirectionalLight，方向光，也称作无限光，平行光光源就如同太阳，若在场景中添加了一个平行光，它可以影响场景中的所有物体，而无论平行光光源设置在任何位置
+				/*
+				平行光，也称作无限光，这种光源发出的光线可以看作是平行的，例如太阳光
+				DirectionalLight( color, intensity)
+				color		光源的颜色
+				intensity	光照强度，默认为1
+				*/
 				var directionalLight = new THREE.DirectionalLight( Math.random() * 0xffffff );
+				//平行光的position指的是它的方向
 				directionalLight.position.x = Math.random() - 0.5;
 				directionalLight.position.y = Math.random() - 0.5;
 				directionalLight.position.z = Math.random() - 0.5;
+				//normalize(): 单位化向量，使其模长为1
 				directionalLight.position.normalize();
 				scene.add( directionalLight );
 
+				/*
+				PointLight( color, intensity, distance, decay );
+				color：光的颜色
+				intensity：光照强度，默认为1
+				distance：光最长能照射的距离，默认为0
+				decay：光的衰减系数，默认为1
+				*/
 				pointLight = new THREE.PointLight( 0xffffff, 1 );
 				scene.add( pointLight );
 
+				/*
+				雪碧图材质，也叫精灵图
+
+				CSS Sprites其实就是把网页中一些背景图片整合到一张图片文件中，再利用CSS的“background-image”，“background- repeat”，“background-position”的组合进行背景定位，background-position可以用数字精确的定位出背景图片的位置。
+
+				在Three.js中意思有点稍微不一样
+				A sprite is a plane that always faces towards the camera, generally with a partially transparent texture applied.
+				Sprites do not cast shadows, setting castShadow = true will have no effect. 
+				一个精灵也就是一个平面，它的面总是朝向相机，通常来说会采用一个部分透明的纹理
+				精灵不能投影出阴影，设置 castShadow = true 没有任何效果
+
+				SpriteCanvasMaterial: 
+				Create a material that can draw custom sprites using a 2d canvas.
+				创建一个使用2d画布绘制的自定义精灵图材质
+				
+				材质color会在program之前被设置到context.fillStyle上。因此如果内部还有对fillStyle的设置，将会直接覆盖掉外部的颜色配置
+				*/
 				var sprite = new THREE.Sprite( new THREE.SpriteCanvasMaterial( { color: 0xffffff, program: program } ) );
+				//sprite默认是边长为1个像素的画布，scale缩放了它的边长
 				sprite.scale.set( 8, 8, 8 );
+				//只要是一个THREE.Object，就有add方法，
 				pointLight.add( sprite );
 
 				renderer = new THREE.CanvasRenderer();

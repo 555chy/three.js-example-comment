@@ -111,7 +111,7 @@
 				Create a material that can draw custom sprites using a 2d canvas.
 				创建一个使用2d画布绘制的自定义精灵图材质
 				
-				材质color会在program之前被设置到context.fillStyle上。因此如果内部还有对fillStyle的设置，则可能会改变外部定义的color
+				材质color会在program之前被设置到context.fillStyle上。因此如果内部还有对fillStyle的设置，将会直接覆盖掉外部的颜色配置
 				*/
 				particleMaterial = new THREE.SpriteCanvasMaterial( {
 					color: 0x000000,
