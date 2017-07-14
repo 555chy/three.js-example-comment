@@ -46,7 +46,10 @@ Voxel在游戏上的应用
 			
 			//立方体
 			var cubeGeometry = new THREE.BoxGeometry( step, step, step );
-			//这种材质会考虑光照的影响，可以用来创建颜色暗淡的、不光亮的物体
+			/*
+			MeshLambertMaterial这种材质会考虑光照的影响，可以用来创建颜色暗淡的、不光亮的物体
+			overdraw:过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+			*/
 			var cubeMaterial = new THREE.MeshLambertMaterial( { color: 0x00ff80, overdraw: 0.5 } );
 
 			var objects = [];

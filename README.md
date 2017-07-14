@@ -335,6 +335,13 @@ https://tympanus.net/Development/RainEffect/index.html
 http://www.mta.me/
 - 水池
 http://madebyevan.com/webgl-water/
+- 礼花
+https://www.qcloud.com/community/article/376875
+- 相机的移动旋转
+https://www.qcloud.com/community/article/758626001490601259
+
+- 前端常用插件
+https://my.oschina.net/u/3611406/blog/1377345
 - 外国的模型交流网站
 sketchfab
 

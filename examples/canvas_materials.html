@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js canvas - materials</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -14,18 +18,23 @@
 		</style>
 	</head>
 	<body>
-
 		<script src="../build/three.js"></script>
 
+		<!--
+		想要使用CanvasRenderer，必须添加如下两个js文件 
+		Projector.js顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
+		THREE.Projector has been moved to /examples/js/renderers/Projector.js. three.js:42883:3
+		TypeError: THREE.RenderableVertex is not a constructor 
+		-->
 		<script src="js/renderers/Projector.js"></script>
 		<script src="js/renderers/CanvasRenderer.js"></script>
-
+		
+		<!--
+		统计插件(FPS，渲染时间，chrome内存使用率)，min表示js代码经过压缩
+		-->
 		<script src="js/libs/stats.min.js"></script>
-
 		<script>
-
 			var container, stats;
-
 			var camera, scene, renderer, objects;
 			var pointLight;
 
@@ -33,64 +42,107 @@
 			animate();
 
 			function init() {
-
 				container = document.createElement('div');
 				document.body.appendChild(container);
 
+				/*
+				透视相机
+				PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-				camera.position.set( 0, 200, 800 );
+				//定义相机的位置，有如下两种方式。如果不设置的话，相机位置为默认的Vector3{x:0,y:0,z:0}
+				//camera.position.set( 0, 200, 800 );
+				camera.position.y = 200;
+				camera.position.z = 800;
 
 				scene = new THREE.Scene();
 
-				// Grid
-
+				// Grid，绘制网格
 				var size = 500, step = 100;
-
 				var geometry = new THREE.Geometry();
-
 				for ( var i = - size; i <= size; i += step ) {
-
+					//从左下角到右上角，先画横线，在画竖线
+					//绘制与X轴平行的横线
 					geometry.vertices.push( new THREE.Vector3( - size, - 120, i ) );
 					geometry.vertices.push( new THREE.Vector3(   size, - 120, i ) );
-
+					//绘制与Z轴平行的竖线
 					geometry.vertices.push( new THREE.Vector3( i, - 120, - size ) );
 					geometry.vertices.push( new THREE.Vector3( i, - 120,   size ) );
-
 				}
 
 				var material = new THREE.LineBasicMaterial( { color: 0xffffff, opacity: 0.2 } );
-
+				/*
+				THREE.Line使用WebGL中的gl.LINE_STRIP(一系列的连续直线，即折线)渲染
+				THREE.LineSegments使用WebGL中的gl.LINES(每一对顶点被解释为一条直线，即线段)渲染
+				*/
 				var line = new THREE.LineSegments( geometry, material );
 				scene.add( line );
 
-				// Spheres
-
+				/*
+				Spheresk，球体
+				function SphereGeometry( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) {……}
+					radius:			半径
+					widthSegments:	水平方向上的分段数，段数越多，球体表面越光滑，默认是8。最小是3
+					heightSegments:	垂直方向上的分段数，段数越多，球体表面越光滑，默认是6，最小是2
+					phiStart:		从X轴的什么地方开始绘制(X轴负方向为起始点，逆时针方向为正，即符合右手螺旋定则)
+					phiLength:		绘制的弧度
+					thetaStart:		从Y轴的什么地方开始绘制(Y轴正方向为起始点，逆时针方向为正，即符合右手螺旋定则)
+					thetaLength:	绘制的弧度
+				*/
 				var geometry = new THREE.SphereGeometry( 100, 14, 7 );
 
 				var textureLoader = new THREE.TextureLoader();
-
+				
 				var earthTexture = textureLoader.load( 'textures/land_ocean_ice_cloud_2048.jpg' );
-
+				
 				var envMap = textureLoader.load( 'textures/envmap.png' );
+				/*
+				exports.UVMapping = UVMapping;													平展-映射
+				exports.CubeReflectionMapping = CubeReflectionMapping;							立方体反射-映射
+				exports.CubeRefractionMapping = CubeRefractionMapping;							立方体折射-映射
+				exports.EquirectangularReflectionMapping = EquirectangularReflectionMapping;	矩形球面反射-映射
+				exports.EquirectangularRefractionMapping = EquirectangularRefractionMapping;	矩形球面折射-映射
+				exports.SphericalReflectionMapping = SphericalReflectionMapping;				球面反射-映射
+				exports.CubeUVReflectionMapping = CubeUVReflectionMapping;						立方体纹理反射-映射
+				exports.CubeUVRefractionMapping = CubeUVRefractionMapping;						立方体纹理折射-映射
+				*/
 				envMap.mapping = THREE.SphericalReflectionMapping;
 
 				var materials = [
-
-					new THREE.MeshBasicMaterial( { color: 0x00ffff, wireframe: true, side: THREE.DoubleSide } ),
-					new THREE.MeshBasicMaterial( { color: 0xff0000, blending: THREE.AdditiveBlending } ),
-					new THREE.MeshLambertMaterial( { color: 0xffffff, overdraw: 0.5 } ),
-					new THREE.MeshLambertMaterial( { color: 0xffffff, overdraw: 0.5 } ),
+					//MeshBasicMaterial，提供的是在不同位置和方向上强度都相同的光源，它的颜色会添加到整个场景和所有对象的当前颜色上，相当于光照模型中各物体之间的反射光，因此通常用来表现光强中非常弱的那部分光
+					new THREE.MeshBasicMaterial( { color: 0x00ffff, wireframe: true, side: THREE.DoubleSide } ),//青色
+					//AdditiveBlending，是一种加法混合模式，材质中的黑色会被当做是透明的
+					new THREE.MeshBasicMaterial( { color: 0xff0000, blending: THREE.AdditiveBlending } ),//红色
+					/*
+					MeshLambertMaterial，这种材质会考虑光照的影响，可以用来创建颜色暗淡的、不光亮的物体
+					overdraw:过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+					*/
+					new THREE.MeshLambertMaterial( { color: 0xffffff, overdraw: 0.5 } ),//白色
+					new THREE.MeshLambertMaterial( { color: 0xffffff, overdraw: 0.5 } ),//白色
+					//MeshNormalMaterial，这是一种简单的材质，根据物体表面的法向量计算颜色
 					new THREE.MeshNormalMaterial( { overdraw: 0.5 } ),
 					new THREE.MeshBasicMaterial( { map: earthTexture } ),
 					new THREE.MeshBasicMaterial( { envMap: envMap, overdraw: 0.5 } )
-
 				];
 
 				for ( var i = 0, l = geometry.faces.length; i < l; i ++ ) {
-
+					/*
+					face {
+						a, b, c, 		组成面的三个顶点索引
+						color,	 		面的颜色
+						materialIndex,	MultiMaterial特有，标识面采用的子材质索引
+						normal{x,y,z},	面正方向的法向量
+						vertexColors: Array,
+						vertexNormals: Array[3],
+					}
+					*/
 					var face = geometry.faces[ i ];
+					console.dir(face);	
 					if ( Math.random() > 0.5 ) face.materialIndex = Math.floor( Math.random() * materials.length );
-
 				}
 
 				materials.push( new THREE.MultiMaterial( materials ) );
@@ -98,7 +150,6 @@
 				objects = [];
 
 				for ( var i = 0, l = materials.length; i < l; i ++ ) {
-
 					var sphere = new THREE.Mesh( geometry, materials[ i ] );
 
 					sphere.position.x = ( i % 5 ) * 200 - 400;
@@ -111,22 +162,21 @@
 					objects.push( sphere );
 
 					scene.add( sphere );
-
 				}
 
 				var PI2 = Math.PI * 2;
 				var program = function ( context ) {
-
 					context.beginPath();
+					//填充一个半径为0.5的圆
 					context.arc( 0, 0, 0.5, 0, PI2, true );
 					context.fill();
-
 				};
 
 				// Lights
-
+				//AmbientLight，这是一种基础光源，它的颜色会添加到整个场景和所有对象的当前颜色上
 				scene.add( new THREE.AmbientLight( Math.random() * 0x202020 ) );
 
+				//DirectionalLight，方向光，也称作无限光，平行光光源就如同太阳，若在场景中添加了一个平行光，它可以影响场景中的所有物体，而无论平行光光源设置在任何位置
 				var directionalLight = new THREE.DirectionalLight( Math.random() * 0xffffff );
 				directionalLight.position.x = Math.random() - 0.5;
 				directionalLight.position.y = Math.random() - 0.5;
@@ -162,23 +212,17 @@
 				stats = new Stats();
 				container.appendChild(stats.dom);
 
-				//
-
 				window.addEventListener( 'resize', onWindowResize, false );
-
 			}
 
 			function onWindowResize() {
-
 				camera.aspect = window.innerWidth / window.innerHeight;
 				camera.updateProjectionMatrix();
 
 				renderer.setSize( window.innerWidth, window.innerHeight );
-
 			}
 
 			function loadImage( path ) {
-
 				var image = document.createElement( 'img' );
 				var texture = new THREE.Texture( image, THREE.UVMapping );
 
@@ -186,22 +230,16 @@
 				image.src = path;
 
 				return texture;
-
 			}
 
-			//
-
 			function animate() {
-
 				requestAnimationFrame( animate );
 
 				render();
 				stats.update();
-
 			}
 
 			function render() {
-
 				var timer = Date.now() * 0.0001;
 
 				camera.position.x = Math.cos( timer ) * 1000;
@@ -209,12 +247,10 @@
 				camera.lookAt( scene.position );
 
 				for ( var i = 0, l = objects.length; i < l; i++ ) {
-
 					var object = objects[ i ];
 
 					object.rotation.x += 0.01;
 					object.rotation.y += 0.005;
-
 				}
 
 				pointLight.position.x = Math.sin( timer * 7 ) * 300;
@@ -222,10 +258,7 @@
 				pointLight.position.z = Math.cos( timer * 3 ) * 300;
 
 				renderer.render( scene, camera );
-
 			}
-
 		</script>
-
 	</body>
 </html>

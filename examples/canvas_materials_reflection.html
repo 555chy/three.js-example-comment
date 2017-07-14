@@ -35,7 +35,6 @@
 		</style>
 	</head>
 	<body>
-
 		<div id="container"></div>
 		<div id="info">
 			<a href="http://threejs.org" target="_blank">three.js</a> - spherical reflection demo.<br />
@@ -99,7 +98,7 @@
 					exports.CubeUVRefractionMapping = CubeUVRefractionMapping;						立方体纹理折射-映射
 					*/
 					envMap.mapping = THREE.SphericalReflectionMapping;
-					
+					//overdraw:过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
 					mesh = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { envMap: envMap, overdraw: 0.5 } ) );
 					scene.add( mesh );
 
