@@ -139,7 +139,7 @@ AxisHelper(坐标轴)只能在WebGLRenderer下显示，不能在CanvasRenderer�
 
 <br>另外，所使用的图片数据的大小必须是2的阶乘，横竖的像素长度大小必须是32x32，128x128等2的阶乘的形式。
 
-在渲染速度方面：WebGL > Canvas > Software。
+在渲染速度方面，一般来说：WebGL > Canvas > Software。但对于低端设备有可能GPU太渣反而不如CPU渲染快。
 
 **参考:** 
 - [WebGLRenderer](https://threejs.org/docs/index.html#api/renderers/WebGLRenderer)
@@ -205,6 +205,9 @@ Multiplies the current matrix by the one specified through the parameters.
 **范例:**
 - [webgl_panorama_cube.html](examples/webgl_panorama_cube.html)
 - [webgl_voxels_liquid.html](examples/webgl_voxels_liquid.html)
+
+**矩阵变换知识点:**
+http://www.opengl-tutorial.org/cn/beginners-tutorials/tutorial-3-matrices/
 
 ### js的apply与call的异同
 1. Function.apply(obj,args)方法接收两个参数
@@ -275,6 +278,25 @@ otherWindow.location = url;
 正八面体，每个面3个顶点，共6个顶点，12条棱
 正十二面体，每个面5个顶点，共20个顶点，30条棱
 
+### alphaTest的作用
+比如：如果一个模型有两层，最终渲染出来结果是前面一层挡住了了后面一层，各位看官可能会觉得挡住就挡住啊，反正看不见，可是当前面一层是带透明度的时候呢，怎么办，这时候计算机会将前面一层模型的像素在缓冲区里取代后面一层模型之前在缓冲区中的缓存，也就是说渲染完这个模型后，计算机记录下来的像素就是前面一层的像素，可是前面一层的像素是带透明度的，那么计算机就会把这个模型的这一部分当成了透明的来处理了。
+alphatest直接舍弃颜色值，当透明度小于阈值的时候，直接舍弃透明的颜色，计算机自然不会记录下透明颜色。
+
+**来源:**
+http://blog.csdn.net/lj820348789/article/details/50628887
+
+### LOD技术即Levels of Detail的简称，意为多细节层次。LOD技术指根据物体模型的节点在显示环境中所处的位置和重要度，决定物体渲染的资源分配，降低非重要物体的面数和细节度，从而获得高效率的渲染运算。
+
+### escape、encodeURI、encodeURIComponent 的区别
+escape()除了 ASCII 字母、数字和特定的符号外，对传进来的字符串全部进行转义编码，因此如果想对URL编码，最好不要使用此方法。而encodeURI() 用于编码整个URI,因为URI中的合法字符都不会被编码转换。encodeURIComponent方法在编码单个URIComponent（指请求参 数）应当是最常用的，它可以讲参数中的中文、特殊字符进行转义，而不会影响整个URL。
+
+
+### 变量的作用域
+在JavaScript中，我们不能为变量定义特定的块作用域，但可以定义其所属的函数域。也就是说，如果变量是在某个函数中定义的，那么它在函数以外的地方是不可见的。而如果该变量是定义在if或者for这样的代码块中的，它在代码块之外是可见的。另外，在JavaScript中，术语"全局变量"指的是声明在所有函数之外的变量，而与之相对的是"局部变量"，所指的则是在某个函数中定义的变量。其中，函数内的代码可以像访问自己的局部变量那样访问全局变量，反之则不行。
+
+**来源:**
+《JavaScript面向对象编程指南》第3章(函数)-3.3(变量的作用域)
+
 ***
 
 ## 我的疑惑
@@ -307,6 +329,8 @@ otherWindow.location = url;
 | [OrbitControls.js](examples/js/controls/OrbitControls.js)							| 轨道控制，鼠标左键旋转(与鼠标方向相同，用于非触摸屏上)，右键平移，中键靠近或远离；也可以使用键盘控制 |
 | [TrackballControls.js](examples/js/controls/TrackballControls.js)					| 轨迹控制，鼠标左键旋转(与鼠标方向相反，用于触摸屏上)，右键平移，中键靠近或远离；也可以使用键盘控制 |
 | [DeviceOrientationControls.js](examples/js/controls/DeviceOrientationControls.js)	| 设备朝向控制，仅对移动设备有效。根据设备朝向调整被控制元素朝向 |
+| [FirstPersonControl.js](examples/js/controls/FirstPersonControl.js) 				| 支持许多第一人称视角（FPV）游戏玩家所熟悉的用户交互模式
+| [FlyControl.js](examples/js/controls/FirstPersonControl.js)						| 支持飞行模拟器式摄像机控制，支持滚动和俯仰
 |||
 | [AsciiEffect.js](examples/js/effects/AsciiEffect.js) 								| ASCII文本画渲染效果 |
 |||
@@ -339,11 +363,18 @@ http://madebyevan.com/webgl-water/
 https://www.qcloud.com/community/article/376875
 - 相机的移动旋转
 https://www.qcloud.com/community/article/758626001490601259
-
 - 前端常用插件
 https://my.oschina.net/u/3611406/blog/1377345
 - 外国的模型交流网站
 sketchfab
+- three.js中文教程
+http://techbrood.com/threejs/docs/
+- 带位移的粒子效果
+http://www.genshuixue.com/i-cxy/p/15682774
+- JSDoc是一个根据javascript文件中注释信息，生成JavaScript应用程序或库、模块的API文档 的工具。
+http://www.css88.com/doc/jsdoc/index.html
+- 自动寻路
+http://www.webhek.com/post/pathfinding.html
 
 **Note:** 如果GitHub的当前页没有index.html的话，GitHub会按设置好的模板加载README.md
 
