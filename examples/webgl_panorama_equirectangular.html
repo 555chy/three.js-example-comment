@@ -51,6 +51,10 @@
 				container = document.getElementById( 'container' );
 
 				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1100 );
+				/*
+				camera.target传的是一个向量，表示相机注视的方向
+				camera.lookAt(vector3)的参数是一个点，表示相机注视着某个点
+				*/
 				camera.target = new THREE.Vector3( 0, 0, 0 );
 
 				scene = new THREE.Scene();

@@ -61,6 +61,7 @@
 		<script src="js/libs/stats.min.js"></script>
 
 		<script>
+			//如果不支持webgl，则会在当前的父布局上添加一个不支持的提示信息DIV
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 			var renderer, scene, camera, stats;

@@ -15,7 +15,6 @@
 		通过给定的几何形状，在Canvas中画出其UV纹理贴图
 		-->
 		<script src="js/utils/UVsDebug.js"></script>
-
 		<script>
 			/*
 			 This is to help debug UVs problems in geometry, as well as allow a new user to visualize what UVs are about.
@@ -23,11 +22,8 @@
 			 */
 			function test(description, name, geometry) {
 				var d = document.createElement( 'div' );
-
 				d.innerHTML = '<br><br>' + description + '<br>' + name + '<br>';
-
 				d.appendChild( THREE.UVsDebug( geometry ) );
-
 				document.body.appendChild( d );
 			}
 
@@ -150,11 +146,8 @@
 			test('圆锥体', 'new THREE.ConeGeometry( 25, 75, 12, 10, 5 )', new THREE.ConeGeometry( 25, 75, 12, 10, 5 ));
 
 			var points = [];
-
 			for ( var i = 0; i < 10; i ++ ) {
-
 			    points.push( new THREE.Vector2( Math.sin( i * 0.2 ) * 15 + 50, ( i - 5 ) * 2 ) );
-
 			}
 			/*
 			通过截面顶点数组(points)创建旋转几何体

@@ -19,11 +19,13 @@
 - [canvas_interactive_cubes_tween.html](examples/canvas_interactive_cubes_tween.html)
 - [canvas_interactive_particles.html](examples/canvas_interactive_particles.html)
 - [canvas_interactive_voxelpainter.html](examples/canvas_interactive_voxelpainter.html)
+- [canvas_lights_pointlights.html](examples/canvas_lights_pointlights.html)
 - [canvas_lines.html](examples/canvas_lines.html)
 - [canvas_lines_colors.html](examples/canvas_lines_colors.html)
 - [canvas_lines_colors_2d.html](examples/canvas_lines_colors_2d.html)
 - [canvas_lines_dashed.html](examples/canvas_lines_dashed.html)
 - [canvas_lines_sphere.html](examples/canvas_lines_sphere.html)
+- [canvas_materials.html](examples/canvas_materials.html)
 - [canvas_materials_normal.html](examples/canvas_materials_normal.html)
 - [canvas_materials_reflection.html](examples/canvas_materials_reflection.html)
 - [canvas_materials_video.html](examples/canvas_materials_video.html)
@@ -32,6 +34,7 @@
 - [canvas_particles_sprites.html](examples/canvas_particles_sprites.html)
 - [canvas_particles_waves.html](examples/canvas_particles_waves.html)
 - [canvas_performance.html](examples/canvas_performance.html)
+- [canvas_sandbox.html](examples/canvas_sandbox.html)
 
 - [css3d_panorama.html](examples/css3d_panorama.html)
 - [css3d_panorama_deviceorientation.html](examples/css3d_panorama_deviceorientation.html)
@@ -46,6 +49,7 @@
 - [webgl_geometry_convex.html](examples/webgl_geometry_convex.html)
 - [webgl_geometries.html](examples/webgl_geometries.html)
 - [webgl_materials_grass.html](examples/webgl_materials_grass.html)
+- [webgl_morphtargets.html](examples/webgl_morphtargets.html)
 - [webgl_panorama_cube.html](examples/webgl_panorama_cube.html)
 - [webgl_test_memory.html](examples/webgl_test_memory.html)
 - [webgl_voxels_liquid.html](examples/webgl_voxels_liquid.html)
@@ -65,13 +69,13 @@
 | :--- | :--- | :--- |
 | AmbientLight		| 环境光		| 这是一种基础光源，它的颜色会添加到整个场景和所有对象的当前颜色上					|
 | AmbientLight(color, intensity)|
-| DirectionalLight	| 方向光		| 也称作无限光，平行光光源就如同太阳，若在场景中添加了一个平行光，它可以影响场景中的所有物体，而无论平行光光源设置在任何位置 |
+| DirectionalLight	| 方向光		| 也称作无限光，平行光光源就如同太阳，若在场景中添加了一个平行光，它可以影响场景中的所有物体，而无论平行光光源设置在任何位置。平行光的方向为它的位置指向场景中心。 |
 | DirectionalLight(color, intensity)|
 | PointLight		| 点光源		| 空间中的一点，朝所有方向发射光线 													|
 | PointLight(color, intensity, distance, decay)|
 | SpotLight			| 聚光灯光源	| 这种光源有聚光效果，类似台灯、天花板上的吊灯、或者手电筒 							|
 | SpotLight(color, intensity, distance, angle, penumbra, decay)|
-| HemisphereLight	| 半球光		| 这是一种特殊的光源，可以用来创建更加自然的室外光线，模拟反光面和光线微弱的天空	|
+| HemisphereLight	| 半球光		| 这是一种特殊的光源，可以用来创建更加自然的室外光线，模拟光线微弱的天空和反光的地面|
 | HemisphereLight(color, groundColor, intensity)|
 | RectAreaLight		| 面光源		| 使用这种光源可以指定散发光线的平面，而不是空间中的一点 							|
 | RectAreaLight (color, intensity, width, height)|
@@ -103,7 +107,7 @@
 ### 材质
 | Name | 名字 | 描述 |
 | :--- | :--- | :--- |
-| MeshBasicMaterial		| 提供的是在不同位置和方向上强度都相同的光源，它的颜色会添加到整个场景和所有对象的当前颜色上，相当于光照模型中各物体之间的反射光，因此通常用来表现光强中非常弱的那部分光 |
+| MeshBasicMaterial		| 与光照无关，仅根据材质的颜色或贴图来渲染物体 |
 | MeshDepthMaterial		| 根据网格到相机的距离，这种材质决定如何给网格染色 |
 | MeshNormalMaterial	| 这是一种简单的材质，根据物体表面的法向量计算颜色 |
 | MeshFaceMaterial		| 这是一个容器，可以在这个容器里为物体的各个表面指定不同的颜色 |
@@ -134,6 +138,7 @@ Canvas渲染器不使用WebGL展示制作的场景，而使用稍微慢一点的
 WebGL需要环境光否则是黑色的，其它两个即使没有环境光也能渲染出材质。
 对于粒子系统：CanvasRenderer只能显示THREE.Sprite(原Particle)，WebGLRenderer只能显示THREE.Points(原ParticleSystem)
 Sprite和Points都是始终面朝相机的2D图形
+WebGLRenderer可以通过computeVertexNormals等函数，使geometry变得光滑(相邻面的夹角不大于45度)，而CanvasRenderer下则无效
 AxisHelper(坐标轴)只能在WebGLRenderer下显示，不能在CanvasRenderer下显示
 大部分情况下，WebGL、Canvas、Software这三种渲染器理论上可以相互替换。
 
@@ -149,6 +154,7 @@ AxisHelper(坐标轴)只能在WebGLRenderer下显示，不能在CanvasRenderer�
 **范例:** 
 - [canvas_geometry_earth.html](examples/canvas_geometry_earth.html)
 - [software_geometry_earth.html](examples/canvas_geometry_earth.html)
+- [webgl_morphnormals.html](examples/webgl_morphnormals.html)
 	
 ### mesh.applyMatrix( new THREE.Matrix4().makeScale( x, y, z ) )) 的计算过程
 1. THREE.Matrix4().makeScale(x,y,z) =》
@@ -367,14 +373,28 @@ https://www.qcloud.com/community/article/758626001490601259
 https://my.oschina.net/u/3611406/blog/1377345
 - 外国的模型交流网站
 sketchfab
-- three.js中文教程
+- three.js教程
 http://techbrood.com/threejs/docs/
+http://pixijs.download/release/docs/PIXI.WebGLRenderer.html
 - 带位移的粒子效果
 http://www.genshuixue.com/i-cxy/p/15682774
 - JSDoc是一个根据javascript文件中注释信息，生成JavaScript应用程序或库、模块的API文档 的工具。
 http://www.css88.com/doc/jsdoc/index.html
 - 自动寻路
 http://www.webhek.com/post/pathfinding.html
+- 显示面框而非三角形框
+http://edg3d.io/embed.php?e=A4HTDSZ3k0XFD2m&p=0&fullscreen=1
+- 名词原理介绍
+http://www.twinklingstar.cn/2016/2617/bump-mapping-collection/
+- 素材
+http://www.51yuansu.com/?z=qqrwdhmim
+- H5游戏在线编辑器
+http://mightyfingers.com/
+- 粒子效果
+http://up.qq.com/act/a20170301pre/index.html#g
+- 室内装修
+http://www.lavisite.lamaison.grdf.fr/maison
+https://playcanv.as/e/p/44MRmJRU/
 
 **Note:** 如果GitHub的当前页没有index.html的话，GitHub会按设置好的模板加载README.md
 

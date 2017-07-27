@@ -98,7 +98,14 @@
 
 				// Cubes
 				var geometry = new THREE.BoxGeometry( 50, 50, 50 );
-				//overdraw:过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+				/*
+				MeshLambertMaterial，这种材质会考虑光照的影响，可以用来创建颜色暗淡的、不光亮的物体
+				color: 即diffuse，漫射颜色，默认为0xffffff，白色
+				ambient: 环境色，默认为0xffffff, 白色, 乘以环境光得到对象的颜色
+				emissive: 自发光(荧光)颜色，默认为0x000000,黑色，实体颜色，不受其他灯光的影响.
+				overdraw: 过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+				morphTargets: 表示是否启用变形
+				*/
 				var material = new THREE.MeshLambertMaterial( { color: 0xffffff, overdraw: 0.5 } );
 
 				for ( var i = 0; i < 100; i ++ ) {
@@ -127,13 +134,12 @@
 				scene.add( ambientLight );
 
 				/*
-				平行光，也称作无限光，平行光光源就如同太阳，若在场景中添加了一个平行光，它可以影响场景中的所有物体，而无论平行光光源设置在任何位置
+				平行光，也称作无限光，平行光光源就如同太阳，若在场景中添加了一个平行光，它可以影响场景中的所有物体，而无论平行光光源设置在任何位置。平行光的方向为它的位置朝向场景中心。
 				DirectionalLight( color, intensity)
 				color		光源的颜色
 				intensity	光照强度，默认为1
 				*/
 				var directionalLight = new THREE.DirectionalLight( Math.random() * 0xffffff );
-				//directionLight(平行光)的position实际上存储的是它的方向，而非位置
 				directionalLight.position.x = Math.random() - 0.5;
 				directionalLight.position.y = Math.random() - 0.5;
 				directionalLight.position.z = Math.random() - 0.5;

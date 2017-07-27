@@ -85,9 +85,26 @@
 				var line = new THREE.LineSegments( geometry, material );
 				scene.add( line );
 
-				// Spheres
+				/*
+				Sphere，球体
+				function SphereGeometry( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) {……}
+					radius:			半径
+					widthSegments:	水平方向上的分段数，段数越多，球体表面越光滑，默认是8。最小是3
+					heightSegments:	垂直方向上的分段数，段数越多，球体表面越光滑，默认是6，最小是2
+					phiStart:		从X轴的什么地方开始绘制(X轴负方向为起始点，逆时针方向为正，即符合右手螺旋定则)
+					phiLength:		绘制的弧度
+					thetaStart:		从Y轴的什么地方开始绘制(Y轴正方向为起始点，逆时针方向为正，即符合右手螺旋定则)
+					thetaLength:	绘制的弧度
+				*/
 				geometry = new THREE.SphereGeometry( 100, 26, 18 );
-				// 这种材质会考虑光照的影响，可以用来创建颜色暗淡的、不光亮的物体
+				/*
+				MeshLambertMaterial，这种材质会考虑光照的影响，可以用来创建颜色暗淡的、不光亮的物体
+				color: 即diffuse，漫射颜色，默认为0xffffff，白色
+				ambient: 环境色，默认为0xffffff, 白色, 乘以环境光得到对象的颜色
+				emissive: 自发光(荧光)颜色，默认为0x000000,黑色，实体颜色，不受其他灯光的影响.
+				overdraw: 过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+				morphTargets: 表示是否启用变形
+				*/
 				material = new THREE.MeshLambertMaterial( { color: 0xffffff, overdraw: 0.5 } );
 				for ( var i = 0; i < 20; i ++ ) {
 					var sphere = new THREE.Mesh( geometry, material );

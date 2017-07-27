@@ -83,7 +83,7 @@
 				scene.add( line );
 
 				/*
-				Spheresk，球体
+				Sphere，球体
 				function SphereGeometry( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) {……}
 					radius:			半径
 					widthSegments:	水平方向上的分段数，段数越多，球体表面越光滑，默认是8。最小是3
@@ -96,10 +96,9 @@
 				var geometry = new THREE.SphereGeometry( 100, 14, 7 );
 
 				var textureLoader = new THREE.TextureLoader();
-				
 				var earthTexture = textureLoader.load( 'textures/land_ocean_ice_cloud_2048.jpg' );
-				
 				var envMap = textureLoader.load( 'textures/envmap.png' );
+
 				/*
 				exports.UVMapping = UVMapping;													平展-映射
 				exports.CubeReflectionMapping = CubeReflectionMapping;							立方体反射-映射
@@ -113,19 +112,46 @@
 				envMap.mapping = THREE.SphericalReflectionMapping;
 
 				var materials = [
-					//MeshBasicMaterial，提供的是在不同位置和方向上强度都相同的光源，它的颜色会添加到整个场景和所有对象的当前颜色上，相当于光照模型中各物体之间的反射光，因此通常用来表现光强中非常弱的那部分光
+					/*
+					MeshBasicMaterial：与光照无关，仅根据材质的颜色或贴图来渲染物体
+						color：材质的颜色
+						map：材质的贴图
+						wireframe: 显示三角形线框还是显示面
+						side：可选的值有THREE.FrontSide(仅渲染正面)、THREE.BackSide(仅渲染背面)、THREE.DoubleSide(双面渲染)
+						overdraw: 过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+						visible: 对象是否可见
+					*/
 					new THREE.MeshBasicMaterial( { color: 0x00ffff, wireframe: true, side: THREE.DoubleSide } ),//青色
-					//AdditiveBlending，是一种加法混合模式，材质中的黑色会被当做是透明的
+					/*
+					var BlendingMode = {
+						NoBlending: NoBlending,
+						NormalBlending: NormalBlending,
+						AdditiveBlending: AdditiveBlending,
+						//是一种加法混合模式，材质中的黑色会被当做是透明的
+						SubtractiveBlending: SubtractiveBlending,
+						MultiplyBlending: MultiplyBlending,
+						CustomBlending: CustomBlending
+					};
+					*/
 					new THREE.MeshBasicMaterial( { color: 0xff0000, blending: THREE.AdditiveBlending } ),//红色
 					/*
 					MeshLambertMaterial，这种材质会考虑光照的影响，可以用来创建颜色暗淡的、不光亮的物体
-					overdraw:过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+					color: 即diffuse，漫射颜色，默认为0xffffff，白色
+					ambient: 环境色，默认为0xffffff, 白色, 乘以环境光得到对象的颜色
+					emissive: 自发光(荧光)颜色，默认为0x000000,黑色，实体颜色，不受其他灯光的影响.
+					overdraw: 过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+					morphTargets: 表示是否启用变形
 					*/
 					new THREE.MeshLambertMaterial( { color: 0xffffff, overdraw: 0.5 } ),//白色
 					new THREE.MeshLambertMaterial( { color: 0xffffff, overdraw: 0.5 } ),//白色
 					//MeshNormalMaterial，这是一种简单的材质，根据物体表面的法向量计算颜色
 					new THREE.MeshNormalMaterial( { overdraw: 0.5 } ),
 					new THREE.MeshBasicMaterial( { map: earthTexture } ),
+					/*
+					环境贴图（Environment Mapping，EM）也称为反射贴图（Reflection Mapping）
+					把反射对象当作一个虚拟眼睛，生成一张虚拟的纹理图，然后把该纹理图映射到反射对象上，得到的图像就是该场景的一个影像。
+					即使反射对象旋转，反射贴图也不会像普通map一样一起旋转。
+					*/
 					new THREE.MeshBasicMaterial( { envMap: envMap, overdraw: 0.5 } )
 				];
 
@@ -175,20 +201,19 @@
 				// Lights
 				/*
 				环境光，这是一种基础光源，它的颜色会添加到整个场景和所有对象的当前颜色上 |
-				AmbientLight( color, intensity)
-				color		光源的颜色
-				intensity	光照强度，默认为1
+					AmbientLight( color, intensity)
+					color		光源的颜色
+					intensity	光照强度，默认为1
 				*/
 				scene.add( new THREE.AmbientLight( Math.random() * 0x202020 ) );
 
 				/*
-				平行光，也称作无限光，这种光源发出的光线可以看作是平行的，例如太阳光
+				平行光，也称作无限光，平行光光源就如同太阳，若在场景中添加了一个平行光，它可以影响场景中的所有物体，而无论平行光光源设置在任何位置。平行光的方向为它的位置指向场景中心。
 				DirectionalLight( color, intensity)
-				color		光源的颜色
-				intensity	光照强度，默认为1
+					color		光源的颜色
+					intensity	光照强度，默认为1
 				*/
 				var directionalLight = new THREE.DirectionalLight( Math.random() * 0xffffff );
-				//平行光的position指的是它的方向
 				directionalLight.position.x = Math.random() - 0.5;
 				directionalLight.position.y = Math.random() - 0.5;
 				directionalLight.position.z = Math.random() - 0.5;
@@ -197,11 +222,12 @@
 				scene.add( directionalLight );
 
 				/*
+				点光源，空间中的一点，朝所有方向发射光线 
 				PointLight( color, intensity, distance, decay );
-				color：光的颜色
-				intensity：光照强度，默认为1
-				distance：光最长能照射的距离，默认为0
-				decay：光的衰减系数，默认为1
+					color：光的颜色
+					intensity：光照强度，默认为1
+					distance：光最长能照射的距离，默认为0
+					decay：光的衰减系数，默认为1
 				*/
 				pointLight = new THREE.PointLight( 0xffffff, 1 );
 				scene.add( pointLight );
@@ -226,12 +252,16 @@
 				var sprite = new THREE.Sprite( new THREE.SpriteCanvasMaterial( { color: 0xffffff, program: program } ) );
 				//sprite默认是边长为1个像素的画布，scale缩放了它的边长
 				sprite.scale.set( 8, 8, 8 );
-				//只要是一个THREE.Object，就有add方法，
+				//只要是一个THREE.Object，就有add方法。add之后就加到children数组中了，效果和group一样
 				pointLight.add( sprite );
+				console.dir(pointLight);
 
 				renderer = new THREE.CanvasRenderer();
+				//设置屏幕像素比，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
 				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
 				container.appendChild( renderer.domElement );
 
 				var debugCanvas = document.createElement( 'canvas' );
@@ -244,26 +274,50 @@
 				container.appendChild( debugCanvas );
 
 				debugContext = debugCanvas.getContext( '2d' );
+				/*
+				setTransform为缩放(scale)、旋转(rotate)、移动(translate)的复合方法。当您调用 setTransform() 时，它都会重置前一个变换矩阵然后构建新的矩阵。旋转的中点是它的左上角坐标
+				
+				context.setTransform(a,b,c,d,e,f);
+					a	水平缩放
+					b	左上角固定，向下倾斜，垂直方向不变
+					c	左上角固定，向右倾斜，水平方向不变
+					d	垂直缩放
+					e	水平移动
+					f	垂直移动
+					
+				这里就相当于把坐标轴移到了画布中心的位置，后面所有的操作都会针对这个新的坐标系
+				*/
 				debugContext.setTransform( 1, 0, 0, 1, 256, 256 );
 				debugContext.strokeStyle = '#000000';
 
-				stats = new Stats();
-				container.appendChild(stats.dom);
+				//左上角的统计信息(FPS，渲染时间，chrome内存使用率)
+                stats = new Stats();
+				//这里注意，统计插件的dom元素是"dom"，而不是domElement
+                container.appendChild( stats.dom );
 
 				window.addEventListener( 'resize', onWindowResize, false );
 			}
 
 			function onWindowResize() {
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-
-				renderer.setSize( window.innerWidth, window.innerHeight );
+				//重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
+                camera.aspect = window.innerWidth / window.innerHeight;
+                //更新透视相机的投影矩阵
+                camera.updateProjectionMatrix();
+				//更新待渲染场景的大小
+                renderer.setSize( window.innerWidth, window.innerHeight );
 			}
 
 			function loadImage( path ) {
 				var image = document.createElement( 'img' );
+				/*映射模式
+				THREE.UVMapping					平展映射,
+				THREE.CubeReflectionMapping 	立方体反射映射,
+				THREE.CubeRefractionMapping		立方体折射映射,
+				THREE.SphericalReflectionMapping球面反射映射,
+				THREE.SphericalRefractionMapping球面折射映射.  
+				*/
 				var texture = new THREE.Texture( image, THREE.UVMapping );
-
+				//由于图片是异步加载的，一旦检测到needsUpdate=true，three.js就会使用_gl.texImage2D将空的纹理数据传输到显存中，然后就将这个标志位设成false, 之后再使用该图片的时候就不需要重新加载显存数据了
 				image.onload = function () { texture.needsUpdate = true; };
 				image.src = path;
 
@@ -274,10 +328,12 @@
 				requestAnimationFrame( animate );
 
 				render();
+				//这里可以在render前后使用stats.begin和stats.end，也可以在每次渲染的时候调用一次stats.update
 				stats.update();
 			}
 
 			function render() {
+				//Date.now()得到的是当前时间戳，单位毫秒
 				var timer = Date.now() * 0.0001;
 
 				camera.position.x = Math.cos( timer ) * 1000;
@@ -287,6 +343,7 @@
 				for ( var i = 0, l = objects.length; i < l; i++ ) {
 					var object = objects[ i ];
 
+					//分别绕着X、Y轴按右手螺旋定则进行旋转
 					object.rotation.x += 0.01;
 					object.rotation.y += 0.005;
 				}

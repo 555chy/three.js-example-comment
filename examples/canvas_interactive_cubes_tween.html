@@ -79,6 +79,14 @@
 				var geometry = new THREE.BoxGeometry( 100, 100, 100 );
 
 				for ( var i = 0; i < 20; i ++ ) {
+					/*
+					MeshBasicMaterial：与光照无关，仅根据材质的颜色或贴图来渲染物体
+						color：材质的颜色
+						map：材质的贴图
+						wireframe: 显示三角形线框还是显示面
+						side：可选的值有THREE.FrontSide(仅渲染正面)、THREE.BackSide(仅渲染背面)、THREE.DoubleSide(双面渲染)
+						overdraw:过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+					*/	
 					var object = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { color: Math.random() * 0xffffff, opacity: 0.5 } ) );
 					object.position.x = Math.random() * 800 - 400;
 					object.position.y = Math.random() * 800 - 400;

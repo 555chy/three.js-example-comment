@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js canvas - sandbox</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -14,93 +18,134 @@
 		</style>
 	</head>
 	<body>
-
 		<script src="../build/three.js"></script>
 
+		<!--
+		想要使用CanvasRenderer，必须添加如下两个js文件 
+		Projector.js顾名思义上将3d图像投影到Canvas("2d")上，如果没有该文件会报如下错误
+		THREE.Projector has been moved to /examples/js/renderers/Projector.js. three.js:42883:3
+		TypeError: THREE.RenderableVertex is not a constructor 
+		-->
 		<script src="js/renderers/Projector.js"></script>
 		<script src="js/renderers/CanvasRenderer.js"></script>
 
+		<!--
+		统计插件(FPS，渲染时间，chrome内存使用率)，min表示js代码经过压缩
+		-->
 		<script src="js/libs/stats.min.js"></script>
-
 		<script>
-
 			var container, stats;
-
 			var camera, scene, renderer, objects;
 			var pointLight;
-
 			var sphere;
-
 			var targetRotation = 0;
 			var targetRotationOnMouseDown = 0;
-
 			var mouseX = 0;
 			var mouseXOnMouseDown = 0;
-
 			var windowHalfX = window.innerWidth / 2;
 			var windowHalfY = window.innerHeight / 2;
-
 			var moveForward = false;
 			var moveBackwards = false;
 			var moveLeft = false;
 			var moveRight = false;
 			var moveUp = false;
 			var moveDown = false;
-
 			var targetMoveLeft = false;
 			var targetMoveRight = false;
-
 			var debugContext;
 
 			init();
 			animate();
 
 			function init() {
-
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
+				/*
+				透视相机
+				PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+				//定义相机的位置，有如下两种方式。如果不设置的话，相机位置为默认的Vector3{x:0,y:0,z:0}
 				camera.position.set( 0, 150, 400 );
+				//camera.position.y = 150;
+				//camera.position.z = 400;
+				
+				/*
+				camera.lookAt(vector3)的参数是一个点，表示相机注视着某个点
+				target不是camera的自有属性，而是当前程序为了存储数据创建的属性
+				
+				render的时候必须重新设置注视点，否则相机只会对着原lookAt计算出的向量方向
+				*/
 				camera.target = new THREE.Vector3( 0, 150, 0 );
 
 				scene = new THREE.Scene();
 
-
-				// Grid
-
+				// Grid，绘制网格
 				var size = 500, step = 100;
-
 				var geometry = new THREE.Geometry();
 
 				for ( var i = - size; i <= size; i += step ) {
-
+					//从左下角到右上角，先画横线，在画竖线
+					//绘制与X轴平行的横线
 					geometry.vertices.push( new THREE.Vector3( - size, 0, i ) );
 					geometry.vertices.push( new THREE.Vector3(   size, 0, i ) );
-
+					//绘制与Z轴平行的竖线
 					geometry.vertices.push( new THREE.Vector3( i, 0, - size ) );
 					geometry.vertices.push( new THREE.Vector3( i, 0,   size ) );
-
 				}
 
 				var material = new THREE.LineBasicMaterial( { color: 0x000000, opacity: 0.5 } );
-
+				/*
+				THREE.Line使用WebGL中的gl.LINE_STRIP(一系列的连续直线，即折线)渲染
+				THREE.LineSegments使用WebGL中的gl.LINES(每一对顶点被解释为一条直线，即线段)渲染
+				*/
 				var line = new THREE.LineSegments( geometry, material );
 				scene.add( line );
 
 				// Spheres
-
 				objects = [];
 
+				/*
+				正20面体(有20个相同三角形面的多面体)
+				function IcosahedronGeometry( radius, detail ) {……}
+					radius:			半径		
+					detail:			细节层次，可以控制在视角接近物体的时候显示面数多的精细模型，而在远离物体时显示面数较少的粗略模型
+				*/
 				geometry = new THREE.IcosahedronGeometry( 100, 1 );
 
 				var envMap = new THREE.TextureLoader().load( 'textures/metal.jpg' );
+				/*
+				exports.UVMapping = UVMapping;													平展-映射
+				exports.CubeReflectionMapping = CubeReflectionMapping;							立方体反射-映射
+				exports.CubeRefractionMapping = CubeRefractionMapping;							立方体折射-映射
+				exports.EquirectangularReflectionMapping = EquirectangularReflectionMapping;	矩形球面反射-映射
+				exports.EquirectangularRefractionMapping = EquirectangularRefractionMapping;	矩形球面折射-映射
+				exports.SphericalReflectionMapping = SphericalReflectionMapping;				球面反射-映射
+				exports.CubeUVReflectionMapping = CubeUVReflectionMapping;						立方体纹理反射-映射
+				exports.CubeUVRefractionMapping = CubeUVRefractionMapping;						立方体纹理折射-映射
+				*/
 				envMap.mapping = THREE.SphericalReflectionMapping;
 
+				/*
+				MeshBasicMaterial：与光照无关，仅根据材质的颜色或贴图来渲染物体
+					color：材质的颜色
+					map：材质的贴图
+					wireframe: 显示三角形线框还是显示面
+					side：可选的值有THREE.FrontSide(仅渲染正面)、THREE.BackSide(仅渲染背面)、THREE.DoubleSide(双面渲染)
+					overdraw: 过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+					visible: 对象是否可见
+					envMap：环境贴图（Environment Mapping，EM）也称为反射贴图（Reflection Mapping）
+					把反射对象当作一个虚拟眼睛，生成一张虚拟的纹理图，然后把该纹理图映射到反射对象上，得到的图像就是该场景的一个影像。
+					即使反射对象旋转，反射贴图也不会像普通map一样一起旋转。
+				*/
 				material = new THREE.MeshBasicMaterial( { envMap: envMap, overdraw: 0.5 } );
 
 				for ( var i = 0; i < 10; i ++ ) {
-
 					sphere = new THREE.Mesh( geometry, material );
 
 					sphere.position.x = Math.random() * 1000 - 500;
@@ -116,28 +161,51 @@
 					objects.push( sphere );
 
 					scene.add( sphere );
-
 				}
 
 				// Lights
-
+				/*
+				环境光，这是一种基础光源，它的颜色会添加到整个场景和所有对象的当前颜色上 |
+					AmbientLight( color, intensity)
+					color		光源的颜色
+					intensity	光照强度，默认为1
+				*/
 				var ambientLight = new THREE.AmbientLight( Math.random() * 0x202020 );
-				scene.add( ambientLight );
+				//scene.add( ambientLight );
 
+				/*
+				平行光，也称作无限光，平行光光源就如同太阳，若在场景中添加了一个平行光，它可以影响场景中的所有物体，而无论平行光光源设置在任何位置。平行光的方向为它的位置指向场景中心。
+				DirectionalLight( color, intensity)
+				color		光源的颜色
+				intensity	光照强度，默认为1
+				*/
 				var directionalLight = new THREE.DirectionalLight( Math.random() * 0xffffff );
 				directionalLight.position.x = Math.random() - 0.5;
 				directionalLight.position.y = Math.random() - 0.5;
 				directionalLight.position.z = Math.random() - 0.5;
+				//normalize(): 单位化向量，使其模长为1
 				directionalLight.position.normalize();
-				scene.add( directionalLight );
+				//scene.add( directionalLight );
 
+				/*
+				点光源，空间中的一点，朝所有方向发射光线 
+				PointLight( color, intensity, distance, decay );
+					color：光的颜色
+					intensity：光照强度，默认为1
+					distance：光最长能照射的距离，默认为0
+					decay：光的衰减系数，默认为1
+				*/
 				pointLight = new THREE.PointLight( 0xff0000, 1 );
-				scene.add( pointLight );
+				//scene.add( pointLight );
 
 				renderer = new THREE.CanvasRenderer();
+				//设置渲染器的"清除色"和"透明度"
 				renderer.setClearColor( 0xf0f0f0 );
+				//设置屏幕像素比，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
 				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
 				container.appendChild( renderer.domElement );
 
 				var debugCanvas = document.createElement( 'canvas' );
@@ -150,37 +218,84 @@
 				container.appendChild( debugCanvas );
 
 				debugContext = debugCanvas.getContext( '2d' );
+				/*
+				setTransform为缩放(scale)、旋转(rotate)、移动(translate)的复合方法。当您调用 setTransform() 时，它都会重置前一个变换矩阵然后构建新的矩阵。旋转的中点是它的左上角坐标
+				
+				context.setTransform(a,b,c,d,e,f);
+					a	水平缩放
+					b	左上角固定，向下倾斜，垂直方向不变
+					c	左上角固定，向右倾斜，水平方向不变
+					d	垂直缩放
+					e	水平移动
+					f	垂直移动
+				
+				这里就相当于把坐标轴移到了画布中心的位置，后面所有的操作都会针对这个新的坐标系
+				*/
 				debugContext.setTransform( 1, 0, 0, 1, 256, 256 );
 				debugContext.strokeStyle = '#000000';
 
-				stats = new Stats();
-				container.appendChild(stats.dom);
+				//左上角的统计信息(FPS，渲染时间，chrome内存使用率)
+                stats = new Stats();
+				//这里注意，统计插件的dom元素是"dom"，而不是domElement
+                container.appendChild( stats.dom );
 
 				document.addEventListener( 'keydown', onDocumentKeyDown, false );
 				document.addEventListener( 'keyup', onDocumentKeyUp, false );
 
-				//
-
 				window.addEventListener( 'resize', onWindowResize, false );
-
 			}
 
 			function onWindowResize() {
-
 				windowHalfX = window.innerWidth / 2;
 				windowHalfY = window.innerHeight / 2;
 
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-
-				renderer.setSize( window.innerWidth, window.innerHeight );
-
+				//重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
+                camera.aspect = window.innerWidth / window.innerHeight;
+                //更新透视相机的投影矩阵
+                camera.updateProjectionMatrix();
+				//更新待渲染场景的大小
+                renderer.setSize( window.innerWidth, window.innerHeight );
 			}
 
+			/*
+			常用键码(event.keyCode)
+			控制键
+			BackSpace:	8
+			Tab:		9
+			Enter:		13
+			Shift:		16
+			Control:	17
+			Alt:		18
+			CapeLock:	20
+			Esc:		27
+			Space:		32
+			PageUp:		33
+			PageDown:	34
+			End:		35
+			Home:		36
+			LeftArrow:	37
+			UpArrow:	38
+			RightArrow:	39
+			DownArrow:	40
+			Insert:		45
+			Delete:		46
+			NumLock:	144
+			
+			字母键盘
+			0-9:	48-57
+			A-Z:	65-90
+			F1-F12:	112-123	
+			
+			数字键盘
+			0-9: 	96-105
+			Enter:	108
+			
+			功能键
+			音量减:	174
+			音量加:	175
+			*/
 			function onDocumentKeyDown( event ) {
-
 				switch ( event.keyCode ) {
-
 					case 38: moveForward = true; break; // up
 					case 40: moveBackwards = true; break; // down
 					case 37: moveLeft = true; break; // left
@@ -189,15 +304,11 @@
 					case 83: moveDown = true; break; // s
 					case 65: targetMoveLeft = true; break; // a
 					case 68: targetMoveRight = true; break; // d
-
 				}
-
 			}
 
 			function onDocumentKeyUp( event ) {
-
 				switch ( event.keyCode ) {
-
 					case 38: moveForward = false; break; // up
 					case 40: moveBackwards = false; break; // down
 					case 37: moveLeft = false; break; // left
@@ -206,24 +317,18 @@
 					case 83: moveDown = false; break; // s
 					case 65: targetMoveLeft = false; break; // a
 					case 68: targetMoveRight = false; break; // d
-
 				}
-
 			}
 
-			//
-
 			function animate() {
-
 				requestAnimationFrame( animate );
 
 				render();
+				//这里可以在render前后使用stats.begin和stats.end，也可以在每次渲染的时候调用一次stats.update
 				stats.update();
-
 			}
 
 			function render() {
-
 				if ( moveForward ) camera.position.z -= 10;
 				if ( moveBackwards ) camera.position.z += 10;
 
@@ -242,41 +347,46 @@
 
 				debugContext.beginPath();
 
-				// center
+				// center，绘制中心的十字
 				debugContext.moveTo( -10, 0 );
 				debugContext.lineTo( 10, 0 );
 				debugContext.moveTo( 0, -10 );
 				debugContext.lineTo( 0, 10 );
 
-				// camera
-
+				/*
+				绘制矩形
+				context.rect(x, y, width, height)
+					x: 矩形左上角的 x 坐标
+					y: 矩形左上角的 y 坐标
+					width: 矩形的宽度，以像素计
+					height:矩形的高度，以像素计
+				*/
+				// camera，绘制相机到注视点间的连线
 				debugContext.moveTo( camera.position.x * 0.1, camera.position.z * 0.1 );
 				debugContext.lineTo( camera.target.x * 0.1, camera.target.z * 0.1 );
+				//绘制相机位置
 				debugContext.rect( camera.position.x * 0.1 - 5, camera.position.z * 0.1 - 5, 10, 10 );
+				//绘制注视点位置
 				debugContext.rect( camera.target.x * 0.1 - 5, camera.target.z * 0.1 - 5, 10, 10 );
+				//绘制测试物体边界，所有绘制均是按0.1的比例来画的
 				debugContext.rect( - 50, - 50, 100, 100 );
 
 				for ( var i = 0, l = objects.length; i < l; i++ ) {
-
 					var object = objects[ i ];
-
 					object.rotation.x += 0.01;
 					object.rotation.y += 0.005;
 					object.position.y = Math.sin( object.rotation.x ) * 200;
-
+					//绘制中间的物体
 					debugContext.rect( object.position.x * 0.1 - 5, object.position.z * 0.1 - 5, 10, 10 );
-
 				}
 
-
-				debugContext.closePath();
+				//closePath() 是创建从当前点到开始点的路径，即形成一个闭合回路。并不是结束路径的意思。
+				//debugContext.closePath();
+				//绘制线条
 				debugContext.stroke();
 
 				renderer.render( scene, camera );
-
 			}
-
 		</script>
-
 	</body>
 </html>

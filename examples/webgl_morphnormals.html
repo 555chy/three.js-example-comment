@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js webgl - morph normals - horse</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -17,13 +21,20 @@
 		</style>
 	</head>
 	<body>
-
 		<script src="../build/three.js"></script>
+		
+		<!--
+		检测支持(canvas，webgl，workers，fileApi)
+		-->
 		<script src="js/Detector.js"></script>
+		
+		<!--
+		统计插件(FPS，渲染时间，chrome内存使用率)，min表示js代码经过压缩
+		-->
 		<script src="js/libs/stats.min.js"></script>
 
 		<script>
-
+			//如果不支持webgl，则会在当前的父布局上添加一个不支持的提示信息DIV
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 			var SCREEN_WIDTH = window.innerWidth;
@@ -32,14 +43,13 @@
 			var container, stats;
 			var camera, scene, renderer;
 			var mixers = [];
-
+			//用来计算时间差，内部使用( performance || Date ).now() 来记录时间
 			var clock = new THREE.Clock();
 
 			init();
 			animate();
 
 			function init() {
-
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
@@ -51,28 +61,62 @@
 				info.innerHTML = '<a href="http://threejs.org" target="_blank">three.js</a> webgl - morph normals - model by <a href="http://mirada.com/">mirada</a> from <a href="http://ro.me">rome</a>';
 				container.appendChild( info );
 
-				//
-
+				/*
+				透视相机
+				PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 40, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 10000 );
 				camera.position.y = 300;
+				/*
+				camera.lookAt(vector3)的参数是一个点，表示相机注视着某个点
+				target不是camera的自有属性，而是当前程序为了存储数据创建的属性
+				
+				render的时候必须重新设置注视点，否则相机只会对着原lookAt计算出的向量方向
+				*/
 				camera.target = new THREE.Vector3( 0, 150, 0 );
 
 				scene = new THREE.Scene();
 
-				//
-
+				/*
+				半球光，这是一种特殊的光源，可以用来创建更加自然的室外光线，模拟光线微弱的天空和反光的地面
+				HemisphereLight(color, groundColor, intensity)
+					color		半球光的颜色(从天上射下来的光的颜色)
+					groundColor	半球光的地面颜色(从地面反射回来的光的颜色)
+					intensity	光照强度，默认为1
+				*/
 				scene.add( new THREE.HemisphereLight( 0x443333, 0x222233 ) );
 
+				/*
+				平行光，也称作无限光，平行光光源就如同太阳，若在场景中添加了一个平行光，它可以影响场景中的所有物体，而无论平行光光源设置在任何位置。平行光的方向为它的位置指向场景中心。
+				DirectionalLight( color, intensity)
+					color		光源的颜色
+					intensity	光照强度，默认为1
+				*/
 				var light = new THREE.DirectionalLight( 0xffffff, 1 );
 				light.position.set( 1, 1, 1 );
 				scene.add( light );
 
-				//
-
-
 				var loader = new THREE.JSONLoader();
 				loader.load( "models/animated/flamingo.js", function( geometry ) {
-
+					/*
+					MeshStandardMaterial(原 MeshPhongMaterial)，这种材质也会考虑光照的影响，而且可以用来创建光亮的物体
+					color: 即diffuse，漫射颜色，默认为0xffffff，白色
+					ambient：设置材质的环境色，和AmbientLight光源一起使用，这个颜色会与环境光的颜色相乘。即是对光源作出反应。
+　　				emissive：设置材质发射的颜色，不是一种光源，而是一种不受光照影响的颜色。默认为黑色
+　　				specular：指定该材质的光亮程度及其高光部分的颜色，如果设置成和color属性相同的颜色，则会得到另一个更加类似金属的材质，如果设置成grey灰色，则看起来像塑料
+　　				shininess：指定高光部分的亮度，默认值为30.
+					morphTargets: 表示是否启用变形
+					morphNormals: 表示是否启用变形的法向量
+					
+					vertexColors: 设置顶点的颜色为片元的颜色，它会将geometry.faces[i].color赋给该点
+					model.json中的颜色源于： "morphColors": [{ "name": "horse_colorMap", "colors": [r,g,b,r,g,b...]}] (其中rgb均为小数形式)
+					
+					shading：着色方式，有FlatShading(平面着色)和SmoothShading(平滑着色，默认)两种。SmoothShading会根据法向量，线性插值得到该点颜色
+					*/
 					var material = new THREE.MeshPhongMaterial( {
 						color: 0xffffff,
 						morphTargets: true,
@@ -83,19 +127,39 @@
 
 					mesh.position.x = - 150;
 					mesh.position.y = 150;
-					mesh.scale.set( 1.5, 1.5, 1.5 );
+					//scale的默认值是1，所以这时候set等价于multiplyScalar
+					//mesh.scale.set( 1.5, 1.5, 1.5 );
+					mesh.scale.multiplyScalar(1.5);
 
 					scene.add( mesh );
 
 					var mixer = new THREE.AnimationMixer( mesh );
+					/*
+					使用动画剪辑工具，创建一个变形序列。动画周期为: morphTargetSequence.length / fps。
+					AnimationClip.CreateFromMorphTargetSequence: function( name, morphTargetSequence, fps, noLoop ) {
+					
+					geometry.morphTargets是形变目标数组，格式为 [ { name: string, vertices: [ { z, y, z }, ... ] }, ... ]
+					*/
+					var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'gallop', geometry.morphTargets, 30 );
+					
+					/*
+					以下两种播放动画的结果相同。区别是clip对动画的名字和周期进行了修改。
+					默认的名字是morphTargets[i].mame去掉最后三位数字，默认每帧0.1秒。
+					{name: string, duration: float, uuid: "8-4-4-4-12", tracks: [name: ".morphTargetInfluences[string_xxx]", createInterpolant: InterpolantFactoryMethodLinear(), times: Float32Array[4或3], value: Float32Array[4或3]]}
+					*/
+					//mixer.clipAction( clip ).setDuration( 1 ).play();
 					mixer.clipAction( geometry.animations[ 0 ] ).setDuration( 1 ).play();
 
 					mixers.push( mixer );
-
 				} );
 
 				loader.load( "models/animated/flamingo.js", function( geometry ) {
-
+					/*
+					通过geometry.computeMorphNormals()和shading: THREE.SmoothShading来实现平滑效果。
+					这个效果在CanvasRenderer下无效，仅在WebGLRenderer下有效。
+					
+					由于使用了Morph动画，如果仅设置geometry.computeVertexNormals()，就会出现黑块频闪，且闪的频率与动画周期无关
+					*/
 					geometry.computeVertexNormals();
 					geometry.computeMorphNormals();
 
@@ -118,79 +182,66 @@
 					mixer.clipAction( geometry.animations[ 0 ] ).setDuration( 1 ).play();
 
 					mixers.push( mixer );
-
 				} );
 
-				//
-
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				//设置屏幕像素比，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
 				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置待渲染场景的大小
 				renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
-
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
 				container.appendChild( renderer.domElement );
 
-				//
-
+				//统计插件(FPS，渲染时间，chrome内存使用率)
 				stats = new Stats();
+				//这里注意，统计插件的dom元素是"dom"，而不是domElement
 				container.appendChild( stats.dom );
 
-				//
-
 				window.addEventListener( 'resize', onWindowResize, false );
-
 			}
-
-			//
 
 			function onWindowResize( event ) {
-
 				SCREEN_WIDTH = window.innerWidth;
 				SCREEN_HEIGHT = window.innerHeight;
-
+				//更新待渲染场景的大小
 				renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
-
-				camera.aspect = 0.5 * SCREEN_WIDTH / SCREEN_HEIGHT;
+				//重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
+				camera.aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
+				//更新透视相机的投影矩阵
 				camera.updateProjectionMatrix();
-
 			}
 
-			//
-
 			function animate() {
-
 				requestAnimationFrame( animate );
 
 				render();
+				//这里可以在render前后使用stats.begin和stats.end，也可以在每次渲染的时候调用一次stats.update
 				stats.update();
-
 			}
 
 			var radius = 600;
 			var theta = 0;
 
 			function render() {
-
 				theta += 0.1;
 
+				//THREE.Math.degToRad将角度转换成弧度
 				camera.position.x = radius * Math.sin( THREE.Math.degToRad( theta ) );
 				camera.position.z = radius * Math.cos( THREE.Math.degToRad( theta ) );
 
 				camera.lookAt( camera.target );
 
+				//返回以秒为单位的时间差
 				var delta = clock.getDelta();
 
 				for ( var i = 0; i < mixers.length; i ++ ) {
-
+					//动画混合器的更新单位为秒
 					mixers[ i ].update( delta );
-
 				}
 
 				renderer.clear();
 				renderer.render( scene, camera );
-
 			}
-
 		</script>
-
 	</body>
 </html>

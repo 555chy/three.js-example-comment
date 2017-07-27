@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js css3d - sprites</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			html, body {

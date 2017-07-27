@@ -40,21 +40,29 @@
 				info.innerHTML = '<a href="http://threejs.org" target="_blank">three.js</a> webgl - morph targets - horse. model by <a href="http://mirada.com/">mirada</a> from <a href="http://ro.me">rome</a>';
 				container.appendChild( info );
 
-				//
-
 				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
 				camera.position.y = 300;
+				/*
+				camera.lookAt(vector3)的参数是一个点，表示相机注视着某个点
+				target不是camera的自有属性，而是当前程序为了存储数据创建的属性
+				
+				render的时候必须重新设置注视点，否则相机只会对着原lookAt计算出的向量方向
+				*/
 				camera.target = new THREE.Vector3( 0, 150, 0 );
 
 				scene = new THREE.Scene();
 
-				//
-
-				var light = new THREE.DirectionalLight( 0xefefff, 1.5 );
+				/*
+				平行光，也称作无限光，平行光光源就如同太阳，若在场景中添加了一个平行光，它可以影响场景中的所有物体，而无论平行光光源设置在任何位置。平行光的方向为它的位置指向场景中心。
+				DirectionalLight( color, intensity)
+					color		光源的颜色
+					intensity	光照强度，默认为1
+				*/
+				var light = new THREE.DirectionalLight( 0xefefff, 1.5 );//淡蓝
 				light.position.set( 1, 1, 1 ).normalize();
 				scene.add( light );
 
-				var light = new THREE.DirectionalLight( 0xffefef, 1.5 );
+				var light = new THREE.DirectionalLight( 0xffefef, 1.5 );//淡红
 				light.position.set( -1, -1, -1 ).normalize();
 				scene.add( light );
 

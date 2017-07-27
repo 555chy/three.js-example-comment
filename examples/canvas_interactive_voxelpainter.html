@@ -47,8 +47,12 @@ Voxel在游戏上的应用
 			//立方体
 			var cubeGeometry = new THREE.BoxGeometry( step, step, step );
 			/*
-			MeshLambertMaterial这种材质会考虑光照的影响，可以用来创建颜色暗淡的、不光亮的物体
-			overdraw:过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+			MeshLambertMaterial，这种材质会考虑光照的影响，可以用来创建颜色暗淡的、不光亮的物体
+			color: 即diffuse，漫射颜色，默认为0xffffff，白色
+			ambient: 环境色，默认为0xffffff, 白色, 乘以环境光得到对象的颜色
+			emissive: 自发光(荧光)颜色，默认为0x000000,黑色，实体颜色，不受其他灯光的影响.
+			overdraw: 过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+			morphTargets: 表示是否启用变形
 			*/
 			var cubeMaterial = new THREE.MeshLambertMaterial( { color: 0x00ff80, overdraw: 0.5 } );
 
@@ -117,7 +121,15 @@ Voxel在游戏上的应用
 				//注意geometry只能用rotateX，不能用rotation.x
 				geometry.rotateX( - Math.PI / 2 );
 
-				//通过材质的visible属性，设置网格是否可见
+				/*
+				MeshBasicMaterial：与光照无关，仅根据材质的颜色或贴图来渲染物体
+					color：材质的颜色
+					map：材质的贴图
+					wireframe: 显示三角形线框还是显示面
+					side：可选的值有THREE.FrontSide(仅渲染正面)、THREE.BackSide(仅渲染背面)、THREE.DoubleSide(双面渲染)
+					overdraw: 过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+					visible: 对象是否可见
+				*/	
 				plane = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { visible: false } ) );
 				scene.add( plane );
 				objects.push( plane );
@@ -133,13 +145,12 @@ Voxel在游戏上的应用
 				scene.add( ambientLight );
 
 				/*
-				平行光，也称作无限光，这种光源发出的光线可以看作是平行的，例如太阳光
+				平行光，也称作无限光，平行光光源就如同太阳，若在场景中添加了一个平行光，它可以影响场景中的所有物体，而无论平行光光源设置在任何位置。平行光的方向为它的位置指向场景中心。
 				DirectionalLight( color, intensity)
 				color		光源的颜色
 				intensity	光照强度，默认为1
 				*/
 				var directionalLight = new THREE.DirectionalLight( 0xffffff );//白光
-				//平行光的position指的是它的方向
 				directionalLight.position.x = Math.random() - 0.5;
 				directionalLight.position.y = Math.random() - 0.5;
 				directionalLight.position.z = Math.random() - 0.5;
@@ -257,8 +268,44 @@ Voxel在游戏上的应用
 				}
 			}
 
+			/*
+			常用键码(event.keyCode)
+			控制键
+			BackSpace:	8
+			Tab:		9
+			Enter:		13
+			Shift:		16
+			Control:	17
+			Alt:		18
+			CapeLock:	20
+			Esc:		27
+			Space:		32
+			PageUp:		33
+			PageDown:	34
+			End:		35
+			Home:		36
+			LeftArrow:	37
+			UpArrow:	38
+			RightArrow:	39
+			DownArrow:	40
+			Insert:		45
+			Delete:		46
+			NumLock:	144
+			
+			字母键盘
+			0-9:	48-57
+			A-Z:	65-90
+			F1-F12:	112-123	
+			
+			数字键盘
+			0-9: 	96-105
+			Enter:	108
+			
+			功能键
+			音量减:	174
+			音量加:	175
+			*/
 			function onDocumentKeyDown( event ) {
-				//keyCode(16)是shift
 				switch( event.keyCode ) {
 					case 16: isShiftDown = true; break;
 				}

@@ -3,6 +3,10 @@
 	<head>
 		<title>three.js webgl - animation - morph targets</title>
 		<meta charset="utf-8">
+		<!--
+		如果没有设置viewport的width的话，网页很可能会超出手机屏幕宽度，具体多宽，要看浏览器定义的默认宽度是多少
+		user-scalable=no，规定了用户不能缩放网页，但有些浏览器对该项支持不是很好，故需要设置minimum-scale和maximum-scale相同来限制用户缩放
+		-->
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -13,7 +17,6 @@
 				font-weight: bold;
 				overflow:hidden;
 			}
-
 			#info {
 				position: absolute;
 				top: 0px; width: 100%;
@@ -24,7 +27,6 @@
 				text-align: center;
 				z-index:100;
 			}
-
 			#ctrl {
 				position: absolute;
 				top: 0px;
@@ -36,9 +38,7 @@
 				font-size: 13px;
 				z-index:100;
 			}
-
 			a { color:red }
-
 		</style>
 	</head>
 
@@ -47,9 +47,21 @@
 			<a href="http://threejs.org" target="_blank">three.js</a> - WebGL morph target example
 		</div>
 
-
 		<div id="ctrl">
 			Use controls to change morph target influences:<br/>
+			<!--
+			<input type="range">是滑动条，onchange事件只会在拖动滑动条，然后松开鼠标时执行(类似onmouseup)
+			事件绑定有三种方式：
+			1、HTML中：
+			<element onchange="SomeJavaScriptCode">
+			或
+			<element onchange="myFunction()">
+			2、JavaScript中：
+			object.onchange=function(){SomeJavaScriptCode};
+			
+			morphTargetInfluences表示形变目标的影响
+			变形后的点坐标为：V[i] = V[i] + (↑P↓j=0) ∑ MTI[j] * (V[i,j] - V[i])
+			-->
 			<input type="range" value="0" min="0" max="100" onchange="mesh.morphTargetInfluences[ 0 ] = this.value/100;" />
 			<input type="range" value="0" min="0" max="100" onchange="mesh.morphTargetInfluences[ 1 ] = this.value/100;" />
 			<input type="range" value="0" min="0" max="100" onchange="mesh.morphTargetInfluences[ 2 ] = this.value/100;" />
@@ -60,24 +72,25 @@
 			<input type="range" value="0" min="0" max="100" onchange="mesh.morphTargetInfluences[ 7 ] = this.value/100;" />
 		</div>
 
-
 		<script src="../build/three.js"></script>
 
+		<!--
+		检测支持(canvas，webgl，workers，fileApi)
+		-->
 		<script src="js/Detector.js"></script>
+		<!--
+		统计插件(FPS，渲染时间，chrome内存使用率)，min表示js代码经过压缩
+		-->
 		<script src="js/libs/stats.min.js"></script>
 
 		<script>
-
+			//如果不支持webgl，则会在当前的父布局上添加一个不支持的提示信息DIV
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 			var container, stats;
-
 			var camera, scene, renderer;
-
 			var geometry, objects;
-
 			var mouseX = 0, mouseY = 0;
-
 			var mesh;
 			var windowHalfX = window.innerWidth / 2;
 			var windowHalfY = window.innerHeight / 2;
@@ -88,111 +101,156 @@
 			animate();
 
 			function init() {
-
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
+				/*
+				透视相机
+				PerspectiveCamera(fov, aspect, near, far)
+                    fov(视场)：从相机位置能够看到的部分场景。推荐默认值45
+                    aspect(长宽比)：渲染结果输出区域的横向长度和纵向长度的比值。推荐默认值window.innerWidth/window.innerHeight
+                    near(近面)：定义从距离相机多近的地方开始渲染场景。推荐默认值0.1
+                    far(远面)：定义相机可以从它所处的位置看多远。默认值1000
+                */
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 15000 );
 				camera.position.z = 500;
 
 				scene = new THREE.Scene();
-				scene.fog = new THREE.Fog( 0x000000, 1, 15000 );
+				/*
+				场景的两种雾化效果(这里没有打光，因此雾不会显示出来)
+				1. scene.fog = new THREE.Fog(color, near, far)
+				第一个参数是雾化效果或者颜色(0xffffff)，后面两个属性用来调节雾的显示，重什么地方开始到什么地方结束
+				2. scene.fog = new THREE.Fog(color, concentration)
+				第一个参数是雾化效果或者颜色(0xffffff)，第二个参数是雾的浓度(0.015)
+				*/
+				//scene.fog = new THREE.Fog( 0x000000, 1, 15000 );
 
+				/*
+				点光源，空间中的一点，朝所有方向发射光线 		
+				PointLight( color, intensity, distance, decay );
+					color：光的颜色
+					intensity：光照强度，默认为1
+					distance：光最长能照射的距离，默认为0
+					decay：光的衰减系数，默认为1
+				*/
 				var light = new THREE.PointLight( 0xff2200 );
-				light.position.set( 100, 100, 100 );
+				light.position.set( 1000, 1000, 1000 );
 				scene.add( light );
 
+				/*
+				环境光，这是一种基础光源，它的颜色会添加到整个场景和所有对象的当前颜色上 |
+				AmbientLight( color, intensity)
+					color		光源的颜色
+					intensity	光照强度，默认为1
+				*/
 				var light = new THREE.AmbientLight( 0x111111 );
 				scene.add( light );
 
+				/*
+				正六面体(方块或立方体，原CubeGeometry)
+				function BoxGeometry( width, height, depth, widthSegments, heightSegments, depthSegments ) {……}
+					width:			方块的宽度，即方块沿X轴方向的长度
+					height:			方块的高度，即方块沿Y轴方向的长度
+					depth:			方块的深度，即方块沿Z轴方向的长度
+					widthSegments:	沿方块的X轴方向，将面分成多少份，默认为1
+					heightSegments:	沿方块的Y轴方向，将面分成多少份，默认为1
+					depthSegments:	沿放开的Z轴方向，将面分成多少份，默认为1
+				*/
 				var geometry = new THREE.BoxGeometry( 100, 100, 100 );
+				/*
+				MeshLambertMaterial，这种材质会考虑光照的影响，可以用来创建颜色暗淡的、不光亮的物体
+				color: 即diffuse，漫射颜色，默认为0xffffff，白色
+				ambient: 环境色，默认为0xffffff, 白色, 乘以环境光得到对象的颜色
+				emissive: 自发光(荧光)颜色，默认为0x000000,黑色，实体颜色，不受其他灯光的影响.
+				overdraw: 过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+				morphTargets: 表示是否启用变形
+				*/
 				var material = new THREE.MeshLambertMaterial( { color: 0xffffff, morphTargets: true } );
 
-				// construct 8 blend shapes
-
+				// construct 8 blend shapes(构建8个混合图形)
 				for ( var i = 0; i < 8; i ++ ) {
-
 					var vertices = [];
-
 					for ( var v = 0; v < geometry.vertices.length; v ++ ) {
-
 						vertices.push( geometry.vertices[ v ].clone() );
-
 						if ( v === i ) {
-
 							vertices[ vertices.length - 1 ].x *= 2;
 							vertices[ vertices.length - 1 ].y *= 2;
 							vertices[ vertices.length - 1 ].z *= 2;
-
 						}
-
 					}
-
+					//将每一"帧"的顶点数组以键值对的方式存入几何体的形变目标中
 					geometry.morphTargets.push( { name: "target" + i, vertices: vertices } );
-
 				}
 
 				mesh = new THREE.Mesh( geometry, material );
-
 				scene.add( mesh );
 
-				//
-
 				renderer = new THREE.WebGLRenderer();
+				//设置渲染器的"清除色"和"透明度"
 				renderer.setClearColor( 0x222222 );
+				//设置屏幕像素比，与Android上的DIP相仿，作用是在所有设备上的显示效果都相近
 				renderer.setPixelRatio( window.devicePixelRatio );
+				//设置待渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				/*
+				material.depthTest 就是根据透明度，让后面的材质适当的显示出来。
+				renderer.sortObjects 就是排序，让被挡住的物体不显示。
+				*/
 				renderer.sortObjects = false;
+				//将渲染器的DOM元素(即Canvas)添加到HTML中
 				container.appendChild( renderer.domElement );
 
-				//
-
 				window.addEventListener( 'resize', onWindowResize, false );
-
 			}
 
 			function onWindowResize() {
-
 				windowHalfX = window.innerWidth / 2;
 				windowHalfY = window.innerHeight / 2;
 
+				//重新设置相机的宽高比。如果宽高比不对，那么正方形可能就不是正方形了
 				camera.aspect = window.innerWidth / window.innerHeight;
+				//更新透视相机的投影矩阵
 				camera.updateProjectionMatrix();
-
+				//重新设置渲染场景的大小
 				renderer.setSize( window.innerWidth, window.innerHeight );
-
 			}
 
 			function onDocumentMouseMove(event) {
-
+				/*
+                html的坐标轴是以左上角为(0,0)，右下方向为正方向
+                event.clientX=event.pageX返回当事件被触发时鼠标指针向对于浏览器可见区域的X坐标
+                event.offsetX返回当前事件相对于事件源元素（srcElement）的X坐标
+                event.screenX鼠标相对于用户显示器屏幕左上角的X坐标
+                */
 				mouseX = ( event.clientX - windowHalfX );
 				mouseY = ( event.clientY - windowHalfY ) * 2;
-
 			}
 
 			function animate() {
-
 				requestAnimationFrame( animate );
 				render();
-
 			}
 
 			function render() {
-
 				mesh.rotation.y += 0.01;
 
 				//mesh.morphTargetInfluences[ 0 ] = Math.sin( mesh.rotation.y ) * 0.5 + 0.5;
 
-				//camera.position.x += ( mouseX - camera.position.x ) * .005;
-				camera.position.y += ( - mouseY - camera.position.y ) * .01;
+				/*
+				即如下两个公式，由于浏览器的X轴方向与WebGL的X轴方向相同，而Y轴方向相反，所以X用正的，而Y用负的
+				camera.position.x = camera.position.x * .95 + mouseX * .05;
+				camera.position.y = camera.position.y * .95 - mouseY * .05;
+				=》
+				camera.position.x = mouseX;
+				camera.position.y = -mouseY;
+				*/
+				camera.position.x += ( mouseX - camera.position.x ) * .05;
+				camera.position.y += ( - mouseY - camera.position.y ) * .05;
 
 				camera.lookAt( scene.position );
 
 				renderer.render( scene, camera );
-
 			}
-
 		</script>
-
 	</body>
 </html>

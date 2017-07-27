@@ -241,7 +241,12 @@
 				camera.position.x += ( mouseX - camera.position.x ) * .05;
 				camera.position.y += ( - mouseY + 200 - camera.position.y ) * .05;
 
-				//相机重新注视场景中央，否则相机只会对着原lookAt计算出的向量方向
+				/*
+				camera.lookAt(vector3)的参数是一个点，表示相机注视着某个点
+				target不是camera的自有属性，而是当前程序为了存储数据创建的属性
+				
+				render的时候必须重新设置注视点，否则相机只会对着原lookAt计算出的向量方向
+				*/
 				camera.lookAt( scene.position );
 
 				//Date.now()得到的是当前时间戳，单位毫秒

@@ -94,8 +94,13 @@
 					//每一个面的颜色都是从该面向外指的法向量计算得到的，所以即使在旋转时，这些颜色也基本上保持在原来的位置
 					mesh = new THREE.Mesh( geometry, new THREE.MeshNormalMaterial( { overdraw: 0.5, side: THREE.DoubleSide  } ) );
 					/*
-					MeshBasicMaterial是一种固定材质，它的纹理颜色不会随着光照改变
-					overdraw:过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+					MeshBasicMaterial：与光照无关，仅根据材质的颜色或贴图来渲染物体
+						color：材质的颜色
+						map：材质的贴图
+						wireframe: 显示三角形线框还是显示面
+						side：可选的值有THREE.FrontSide(仅渲染正面)、THREE.BackSide(仅渲染背面)、THREE.DoubleSide(双面渲染)
+						overdraw: 过渡描绘。如果用THREE.CanvasRenderer对象，有缝隙时需设置该值。例如当前如果使用0.5以下的值，三角形的分界线就很明显。但是使用WebGLRenderer则不会有分割线
+						visible: 对象是否可见
 					mesh = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { color: "white", wireframe: true} ) );
 					*/
 					scene.add( mesh );
@@ -109,6 +114,17 @@
 							//除以一个标量，会修改当前向量，并返回this
 							face.centroid.divideScalar(3);
 						}
+						
+						/*
+						箭头
+						ArrowHelper(dir, origin, length, hex, headLength, headWidth )
+							dir:			箭头的方向，它必须是一个单位向量
+							origin:			箭头的起始点
+							length:			箭头的长度，默认为1
+							hex:			十六进制的颜色，默认为黄色(0xffff00)
+							headLength:		箭头的长度，默认为0.2 * length.
+							headWidth:		箭头的宽度，默认为0.2 * headLength. 
+						*/
 						var arrow = new THREE.ArrowHelper(face.normal, face.centroid, 2, 0x3333FF);
 						mesh.add(arrow);
 					}

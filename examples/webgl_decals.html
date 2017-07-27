@@ -99,6 +99,12 @@
 
 			camera = new THREE.PerspectiveCamera( fov, window.innerWidth / window.innerHeight, 1, 1000 );
 			camera.position.z = 100;
+			/*
+			camera.lookAt(vector3)的参数是一个点，表示相机注视着某个点
+			target不是camera的自有属性，而是当前程序为了存储数据创建的属性
+			
+			render的时候必须重新设置注视点，否则相机只会对着原lookAt计算出的向量方向
+			*/
 			camera.target = new THREE.Vector3();
 
 			controls = new THREE.OrbitControls( camera, renderer.domElement );
