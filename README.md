@@ -1,6 +1,9 @@
 # three.js-example-comment
 
-对 three.js 库中的 examples 进行注释
+本项目是对 three.js 库中的 examples 进行注释
+方便初学者直接从项目入手开始学习three.js
+
+官网地址：[https://threejs.org/examples](https://threejs.org/examples/)
 
 ***
 
